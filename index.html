@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hugging Cat</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: white;
+        }
+        #cat {
+            width: 150px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        #cat:active {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <img id="cat" src="cat-normal.png" alt="8-bit cat">
+    
+    <script>
+        const cat = document.getElementById("cat");
+        cat.addEventListener("click", () => {
+            cat.src = "cat-hug.png"; // Change image to "hugging" cat
+            setTimeout(() => {
+                cat.src = "cat-normal.png"; // Change back after 1 second
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
