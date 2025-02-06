@@ -23,15 +23,15 @@
     </style>
 </head>
 <body>
-    <img id="cat" src="images/stinkycat.png" alt="8-bit cat">
+    <img id="cat" src="images/catv2.png" alt="Stinker">
     
     <script>
         const cat = document.getElementById("cat");
         cat.addEventListener("click", () => {
-            cat.src = "images/stinkycat.png" // Change image to "hugging" cat
+            cat.src = "images/hug.gif" // Change image to "hugging" cat
             setTimeout(() => {
-                cat.src = "images/stinkycat.png"; // Change back after 1 second
-            }, 1000);
+                cat.src = "images/catv2.png"; // Change back after 1 second
+            }, 1500);
         });
     </script>
 </body>
