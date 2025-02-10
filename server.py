@@ -1,51 +1,32 @@
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-
-sessions = { } 
-
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  #  (Change this)
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 
 
+sessions = {}  # Stores player statuses
 
-@app.websocket("/ws")
-async def ws_endpoint(websocket: WebSocket):
-    await websocket.accept()
+@app.post("/ready/{player_id}")
+async def player_ready(player_id: str):
+    """ Mark a player as ready """
+    sessions[player_id] = True
+    return {"message": "Player is ready"}
 
-    
-
-    while True: 
-            message = await websocket.receive_text()
-    
-            player_count = 0
-
-            if message.startswith("player_id:"):
-                player_id = message.split(":")[1]
-                print(f"Player connected with ID: {player_id}")
-                sessions[player_id] = {"ready": False, "websocket": websocket}
-
-
-            if message == "ready":
-                print("player clicked")
-                sessions[player_id]["ready"] = True
-
-                
-            
-            for player_id in sessions: 
-            
-                if sessions[player_id]["ready"]:
-                    player_count += 1
-                
-            if player_count == 2: 
-                    
-                
-                for player_id in sessions:
-                    if sessions[player_id]["ready"] == True: 
-                        await sessions[player_id]["websocket"].send_text("hug")
+@app.get("/status")
+async def check_status():
+    """ Check if both players are ready """
+    if sum(sessions.values()) >= 2:
+        return {"status": "hug"}  # Send hug signal
+    return {"status": "waiting"}  # Still waiting for the other player
 
 if __name__ == "__main__":
-    print("Starting server...")  # Debugging print
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-
-
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)

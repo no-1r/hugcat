@@ -5,21 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hugging Cat</title>
     <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: white;
-        }
-        #cat {
-            width: 150px;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-        #cat:active {
-            transform: scale(1.1);
-        }
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; background-color: white; }
+        #cat { width: 150px; cursor: pointer; transition: transform 0.2s ease; }
+        #cat:active { transform: scale(1.1); }
     </style>
 </head>
 <body>
@@ -27,12 +15,24 @@
     
     <script>
         const cat = document.getElementById("cat");
-        cat.addEventListener("click", () => {
-            cat.src = "images/hug.gif" // Change image to "hugging" cat
-            setTimeout(() => {
-                cat.src = "images/catv2.png"; // Change back after 1 second
-            }, 1500);
+        const playerId = Math.floor(Math.random() * 1000000).toString(); // Unique player ID
+
+        cat.addEventListener("click", async () => {
+            console.log("Cat clicked, sending 'ready'");
+            await fetch(`http://127.0.0.1:8000/ready/${playerId}`, { method: "POST" });
         });
+
+        async function checkStatus() {
+            const response = await fetch("http://127.0.0.1:8000/status");
+            const data = await response.json();
+            console.log("Received status:", data.status);
+            if (data.status === "hug") {
+                cat.src = "images/hug.gif"; // Show hug animation
+                setTimeout(() => { cat.src = "images/catv2.png"; }, 2000);
+            }
+        }
+
+        setInterval(checkStatus, 1000); // Poll every 1 second
     </script>
 </body>
 </html>
