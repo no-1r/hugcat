@@ -5,13 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hugging Cat</title>
     <style>
-        body { display: flex; justify-content: center; align-items: center; height: 100vh; background-color: white; }
+        body {
+                    display: flex; 
+                    justify-content: center; 
+                    align-items: center; 
+                    height: 100vh; 
+                    background: url("/static/images/background-1.png") no-repeat center center fixed; 
+                    background-size: cover; 
+                }
         #cat { width: 150px; cursor: pointer; transition: transform 0.2s ease; }
         #cat:active { transform: scale(1.1); }
     </style>
 </head>
 <body>
+
+
     <img id="cat" src="/static/images/cat1.png" alt="Stinker">
+
     
     <script>
         const cat = document.getElementById("cat");
