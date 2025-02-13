@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hugging Cat</title>
+    <title>Hugz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
+        
         body {
                 display: flex; 
+                flex-direction: column;
                 justify-content: center; 
                 align-items: center; 
                 height: 100vh; 
@@ -17,15 +20,28 @@
                 background-size: cover; 
                 background-color: #ede9da; 
                 }
-        #cat { width: 150px; cursor: pointer; transition: transform 0.2s ease; }
+        
+        #title {
+
+            position: absolute;
+            top: 80px; /* Moves it higher */
+            left: 50%;
+            transform: translateX(-50%); 
+            font-family: 'Press Start 2P';
+            font-size: 24px;
+            color: black;
+            text-align: center;
+            
+        }
+        #cat { width: 200px; height: auto; cursor: pointer; transition: transform 0.2s ease; }
         #cat:active { transform: scale(1.1); }
     </style>
 </head>
 <body>
-
+    <h1 id="title">Hugz</h1>  
 
     <img id="cat" src="/static/images/cat1.png" alt="Stinker">
-
+    
     
     <script>
         const cat = document.getElementById("cat");
