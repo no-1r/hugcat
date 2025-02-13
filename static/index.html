@@ -6,12 +6,16 @@
     <title>Hugging Cat</title>
     <style>
         body {
-                    display: flex; 
-                    justify-content: center; 
-                    align-items: center; 
-                    height: 100vh; 
-                    background: url("/static/images/background.png") no-repeat center center fixed; 
-                    background-size: cover; 
+                display: flex; 
+                justify-content: center; 
+                align-items: center; 
+                height: 100vh; 
+                background-image: url("/static/images/background.png"); 
+                background-repeat: no-repeat; 
+                background-position: center center; 
+                background-attachment: fixed; 
+                background-size: cover; 
+                background-color: #ede9da; 
                 }
         #cat { width: 150px; cursor: pointer; transition: transform 0.2s ease; }
         #cat:active { transform: scale(1.1); }
