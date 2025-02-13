@@ -5,17 +5,19 @@ import uvicorn
 import time
 import os
 
-static_dir = os.path.join(os.getcwd(), "static")
-print(f"Static directory path: {static_dir}")
-print(f"Static directory exists: {os.path.exists(static_dir)}")
-print(f"Contents of static directory: {os.listdir(static_dir)}")
-
-
+# Ensure we get the full path
+static_dir = os.path.abspath("static")
+print(f"Serving static files from: {static_dir}")
 
 app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
+# Serve the index.html file when accessing the root
+from fastapi.responses import FileResponse
 
+@app.get("/")
+async def serve_homepage():
+    return FileResponse(os.path.join(static_dir, "index.html"))
 
 
 
