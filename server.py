@@ -6,7 +6,7 @@ import time
 import os 
 app = FastAPI()
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="static",html=True), name="static")
 
 
 app.add_middleware(
