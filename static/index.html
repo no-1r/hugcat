@@ -11,7 +11,7 @@
     </style>
 </head>
 <body>
-    <img id="cat" src="/static/images/cat1.png" alt="Stinker">
+    <img id="cat" src="static/images/cat1.png" alt="Stinker">
     
     <script>
         const cat = document.getElementById("cat");
@@ -19,9 +19,9 @@
         let hugInProgress = false;
 
         const images = {
-            base: "/static/images/cat1.png",
-            hug: "/static/images/both_cath_hug.gif",
-            idle: ["/static/images/cat_tail_wag.gif", "/static/images/cat_blinking.gif"]
+            base: "static/images/cat1.png",
+            hug: "static/images/both_cath_hug.gif",
+            idle: ["static/images/cat_tail_wag.gif", "static/images/cat_blinking.gif"]
         };
 
         // Preload images
@@ -63,12 +63,12 @@
 
         cat.addEventListener("click", async () => {
             console.log("Cat clicked, sending 'ready'");
-            await fetch(`http://127.0.0.1:8000/ready/${playerId}`, { method: "POST" });
+            await fetch(`${window.location.origin}/ready/${playerId}`, { method: "POST" });
         });
 
         async function checkStatus() {
             try {
-                const response = await fetch("http://127.0.0.1:8000/status");
+                const response = await fetch(`${window.location.origin}/status`);
                 if (!response.ok) {
                     console.error("Server error:", response.status);
                     return;

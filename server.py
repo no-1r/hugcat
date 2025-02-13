@@ -3,10 +3,21 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 import time
-import os 
-app = FastAPI()
+import os
 
-app.mount("/", StaticFiles(directory="static",html=True), name="static")
+static_dir = os.path.join(os.getcwd(), "static")
+print(f"Static directory path: {static_dir}")
+print(f"Static directory exists: {os.path.exists(static_dir)}")
+print(f"Contents of static directory: {os.listdir(static_dir)}")
+
+
+
+app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+
+
 
 
 app.add_middleware(
@@ -23,6 +34,8 @@ app.add_middleware(
 sessions = {}  # Stores player statuses
 hug_active = False
 hug_start_time = 0
+
+
 
 @app.post("/ready/{player_id}")
 async def player_ready(player_id: str):
