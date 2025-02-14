@@ -3,14 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hugz</title>
+    <title>hugz</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="/static/images/appleicon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/static/images/appleicon.png">
+    
 
+
+
+
+    
     <style>
+        @keyframes meowFade {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            50% { transform: translateY(-10px) scale(1.2); opacity: 1; }
+            100% { transform: translateY(-20px) scale(1); opacity: 0; }
+        }
+        #cat-container {
+        position: relative;
+        display: inline-block;
+
+        }
+
+        .meow-text {
+            position: absolute;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            color: #7D6E83;
+            pointer-events: none;
+            animation: meowFade 1s ease-out;
+            white-space: nowrap;
+            left: 50%;
+            top: 0;
+            transform: translate(-100%, -100%);
+        }
+
         
+
         body {
                 display: flex; 
                 flex-direction: column;
@@ -35,6 +65,7 @@
             font-size: 24px;
             color: black;
             text-align: center;
+            text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
             
         }
         #cat { width: 200px; height: auto; cursor: pointer; transition: transform 0.2s ease; }
@@ -43,8 +74,10 @@
 </head>
 <body>
     <h1 id="title">hugz</h1>  
-
-    <img id="cat" src="/static/images/cat1.png" alt="Stinker">
+    <div id="cat-container">
+        <img id="cat" src="/static/images/cat1.png" alt="Stinker">
+    </div>
+  
     
     
     <script>
@@ -93,12 +126,35 @@
             }
         }, 5000);
            
-    
+        
 
         cat.addEventListener("click", async () => {
             console.log("Cat clicked, sending 'ready'");
             await fetch(`${window.location.origin}/ready/${playerId}`, { method: "POST" });
         });
+        
+        function showMeowEffect() {
+            const meow = document.createElement("div");
+            meow.classList.add("meow-text");
+            meow.innerText = "*meow*";
+
+            const catContainer = document.getElementById("cat-container");
+            catContainer.appendChild(meow); 
+
+            // Small random offset for variation
+            const offsetX = (Math.random() * 50) - 30; // Left/right random movement
+            const offsetY = -10; // Moves slightly above
+
+            meow.style.left = `50%`;
+            meow.style.top = `30%`;
+            meow.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+
+            setTimeout(() => {
+                meow.remove();
+            }, 1000);
+        }
+
+        document.getElementById("cat").addEventListener("click", showMeowEffect);
 
         async function checkStatus() {
             try {
