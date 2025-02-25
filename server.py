@@ -1,9 +1,29 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi import HTTPException
 import uvicorn
 import time
 import os
+import enum
+
+from sqlalchemy import create_engine, Column, Integer, String, Enum, ForeignKey, or_, and_
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, relationship
+
+
+Base = declarative_base()
+engine = create_engine('sqlite:///hugcat.db', connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(bind=engine)
+
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key = True, index = True)
+    username = Column(String, unique=True, index = True, nullable = False)
+
+Base.metadata.create_all(bind=engine)
+
 
 # Ensure we get the full path
 static_dir = os.path.abspath("static")
@@ -36,6 +56,28 @@ app.add_middleware(
 sessions = {}  # Stores player statuses
 hug_active = False
 hug_start_time = 0
+
+@app.post("/register")
+async def register(username: str):
+
+    db = SessionLocal() 
+
+    existing_user = db.query(User).filter(User.username == username).first()
+
+    if existing_user: 
+        db.close()
+        raise HTTPException(status_code=400, detail="username already exists")
+
+    new_user = User(username=username)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    db.close()
+
+
+    return {"user_id": new_user.id, "username": new_user.username}
+
+
 
 
 
