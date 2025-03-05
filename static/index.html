@@ -9,11 +9,6 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/static/images/appleicon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/static/images/appleicon.png">
     
-
-
-
-
-    
     <style>
         @keyframes meowFade {
             0% { transform: translateY(0) scale(1); opacity: 1; }
@@ -21,9 +16,8 @@
             100% { transform: translateY(-20px) scale(1); opacity: 0; }
         }
         #cat-container {
-        position: relative;
-        display: inline-block;
-
+            position: relative;
+            display: inline-block;
         }
 
         .meow-text {
@@ -39,26 +33,25 @@
             transform: translate(-100%, -100%);
         }
 
-        
-
         body {
-                display: flex; 
-                flex-direction: column;
-                justify-content: center; 
-                align-items: center; 
-                height: 100vh; 
-                background-image: url("/static/images/background.png"); 
-                background-repeat: no-repeat; 
-                background-position: center center; 
-                background-attachment: fixed; 
-                background-size: cover; 
-                background-color: #ede9da; 
-                }
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            background-image: url("/static/images/background.png"); 
+            background-repeat: no-repeat; 
+            background-position: center center; 
+            background-attachment: fixed; 
+            background-size: cover; 
+            background-color: #ede9da; 
+            margin: 0;
+            padding: 0;
+        }
         
         #title {
-
             position: absolute;
-            top: 80px; /* Moves it higher */
+            top: 80px;
             left: 50%;
             transform: translateX(-50%); 
             font-family: 'Press Start 2P';
@@ -66,24 +59,134 @@
             color: black;
             text-align: center;
             text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
-            
         }
-        #cat { width: 200px; height: auto; cursor: pointer; transition: transform 0.2s ease; }
-        #cat:active { transform: scale(1.1); }
+        
+        #cat { 
+            width: 200px; 
+            height: auto; 
+            cursor: pointer; 
+            transition: transform 0.2s ease; 
+        }
+        
+        #cat:active { 
+            transform: scale(1.1); 
+        }
+        
+        /* New styles for the nav bar */
+        .navbar {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .navbar-button {
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            color: #333;
+            display: inline-block;
+        }
+        
+        .navbar-button:hover {
+            background-color: rgba(255, 255, 255, 1);
+        }
+        
+        /* Mode switcher */
+        .mode-switch {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .mode-label {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            color: black;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 4px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .mode-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .mode-button {
+            flex: 1;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 5px;
+            padding: 6px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            cursor: pointer;
+        }
+        
+        .mode-button.active {
+            background-color: #FFD1DC; /* Light pink for active mode */
+        }
+        
+        /* Friend hugging banner */
+        .friend-banner {
+            position: fixed;
+            bottom: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body>
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <a href="/profile" class="navbar-button">PROFILE</a>
+        <button id="login-button" class="navbar-button">LOGIN</button>
+        <button id="logout-button" class="navbar-button" style="display: none;">LOGOUT</button>
+    </div>
+    
+    <!-- Mode Switcher -->
+    <div class="mode-switch">
+        <div class="mode-label">MODE</div>
+        <div class="mode-buttons">
+            <button id="public-mode" class="mode-button active">PUBLIC</button>
+            <button id="friend-mode" class="mode-button">FRIEND</button>
+        </div>
+    </div>
+    
     <h1 id="title">hugz</h1>  
+    
     <div id="cat-container">
         <img id="cat" src="/static/images/cat1.png" alt="Stinker">
     </div>
+    
+    <!-- Friend Hugging Banner -->
+    <div id="friend-banner" class="friend-banner">
+        Want to hug a specific friend? <a href="/profile" style="color: #ff6b6b;">Go to your profile</a>
+    </div>
   
-    
-    
     <script>
         const cat = document.getElementById("cat");
-        const playerId = Math.floor(Math.random() * 1000000).toString(); // Unique player ID
+        let playerId = Math.floor(Math.random() * 1000000).toString(); // Default player ID
         let hugInProgress = false;
+        let isPrivateSession = false;
+        let sessionKey = null;
+        let token = localStorage.getItem('hugz_token');
+        let currentUser = null;
 
         const images = {
             base: "/static/images/cat1.png",
@@ -96,6 +199,91 @@
             const img = new Image();
             img.src = src;
         });
+        
+        // Check for session parameter in URL
+        function checkForSessionKey() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sessionParam = urlParams.get('session');
+            
+            if (sessionParam) {
+                sessionKey = sessionParam;
+                isPrivateSession = true;
+                document.getElementById('public-mode').classList.remove('active');
+                document.getElementById('friend-mode').classList.add('active');
+                document.getElementById('title').textContent = 'Private Hug';
+                
+                // Fetch session details
+                fetchSessionDetails(sessionKey);
+            }
+        }
+        
+        // Update UI based on authentication status
+        function updateAuthUI() {
+            if (token) {
+                document.getElementById('login-button').style.display = 'none';
+                document.getElementById('logout-button').style.display = 'inline-block';
+                document.getElementById('friend-banner').style.display = 'block';
+                
+                // If we have a token, use the actual user ID instead of random
+                fetchUserInfo();
+            } else {
+                document.getElementById('login-button').style.display = 'inline-block';
+                document.getElementById('logout-button').style.display = 'none';
+                document.getElementById('friend-banner').style.display = 'none';
+                
+                // Force public mode for non-authenticated users
+                if (isPrivateSession) {
+                    alert('Please log in to join private hug sessions');
+                    window.location.href = '/profile';
+                }
+            }
+        }
+        
+        // Fetch user info
+        async function fetchUserInfo() {
+            try {
+                const response = await fetch('/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    currentUser = await response.json();
+                    console.log('Current user:', currentUser);
+                    playerId = currentUser.id.toString(); // Use actual user ID
+                } else {
+                    // Token is invalid
+                    localStorage.removeItem('hugz_token');
+                    token = null;
+                    updateAuthUI();
+                }
+            } catch (error) {
+                console.error('Error fetching user info:', error);
+            }
+        }
+        
+        // Fetch session details
+        async function fetchSessionDetails(key) {
+            try {
+                const response = await fetch(`/hug-session/${key}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const sessionData = await response.json();
+                    document.getElementById('title').textContent = `Hug with ${sessionData.friend_username}`;
+                } else {
+                    alert('Failed to load hug session');
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Error fetching session:', error);
+                alert('Error loading hug session');
+            }
+        }
 
         function playIdleAnimation() {
             if (hugInProgress) {
@@ -126,11 +314,35 @@
             }
         }, 5000);
            
-        
-
+        // Cat click handler - different for public and private sessions
         cat.addEventListener("click", async () => {
-            console.log("Cat clicked, sending 'ready'");
-            await fetch(`${window.location.origin}/ready/${playerId}`, { method: "POST" });
+            if (isPrivateSession) {
+                // Private session ready endpoint
+                if (!token) {
+                    alert('Please log in to participate in private hugs');
+                    window.location.href = '/profile';
+                    return;
+                }
+                
+                try {
+                    await fetch(`/ready/${sessionKey}`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    console.log('Private session ready signal sent');
+                } catch (error) {
+                    console.error('Error sending ready signal:', error);
+                }
+            } else {
+                // Public session ready endpoint
+                console.log("Cat clicked, sending 'ready' for public session");
+                await fetch(`/ready/${playerId}`, { method: "POST" });
+            }
+            
+            // Show meow effect
+            showMeowEffect();
         });
         
         function showMeowEffect() {
@@ -154,9 +366,16 @@
             }, 1000);
         }
 
-        document.getElementById("cat").addEventListener("click", showMeowEffect);
-
+        // Status polling functions - different for public and private
         async function checkStatus() {
+            if (isPrivateSession) {
+                checkPrivateStatus();
+            } else {
+                checkPublicStatus();
+            }
+        }
+        
+        async function checkPublicStatus() {
             try {
                 const response = await fetch(`${window.location.origin}/status`);
                 if (!response.ok) {
@@ -168,7 +387,7 @@
                     console.error("Invalid response:", data);
                     return;
                 }
-                console.log("Received status:", data.status);
+                console.log("Received public status:", data.status);
 
                 if (data.status === "hug" && !hugInProgress) {
                     hugInProgress = true;
@@ -185,8 +404,75 @@
                 console.error("Fetch error:", error);
             }
         }
+        
+        async function checkPrivateStatus() {
+            if (!sessionKey) return;
+            
+            try {
+                const response = await fetch(`/status/${sessionKey}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log("Received private status:", data.status);
+                    
+                    if (data.status === "hug" && !hugInProgress) {
+                        hugInProgress = true;
+                        console.log("Private hug animation started.");
+                        cat.src = images.hug;
+                        
+                        setTimeout(() => { 
+                            console.log("Private hug animation ended.");
+                            cat.src = images.base; 
+                            hugInProgress = false;
+                        }, 2000);
+                    }
+                }
+            } catch (error) {
+                console.error("Private status fetch error:", error);
+            }
+        }
+        
+        // Mode switching functions
+        document.getElementById('public-mode').addEventListener('click', () => {
+            if (isPrivateSession) {
+                // Remove session parameter and reload
+                window.location.href = '/';
+            }
+        });
+        
+        document.getElementById('friend-mode').addEventListener('click', () => {
+            if (!token) {
+                alert('Please log in to use friend hugging');
+                window.location.href = '/profile';
+                return;
+            }
+            
+            // Redirect to profile page to select a friend
+            window.location.href = '/profile';
+        });
+        
+        // Login/Logout buttons
+        document.getElementById('login-button').addEventListener('click', () => {
+            window.location.href = '/profile';
+        });
+        
+        document.getElementById('logout-button').addEventListener('click', () => {
+            localStorage.removeItem('hugz_token');
+            token = null;
+            playerId = Math.floor(Math.random() * 1000000).toString(); // Reset to random
+            updateAuthUI();
+            
+            // If in private session, redirect to public
+            if (isPrivateSession) {
+                window.location.href = '/';
+            }
+        });
 
-        setInterval(checkStatus, 750); // Poll every 750ms
+        // Initialize everything
+        document.addEventListener('DOMContentLoaded', () => {
+            updateAuthUI();
+            checkForSessionKey();
+            setInterval(checkStatus, 750); // Start the status polling
+        });
     </script>
 </body>
 </html>
