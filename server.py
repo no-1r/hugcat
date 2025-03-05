@@ -23,6 +23,10 @@ from typing import List
 
 
 import uuid
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class UserResponse(BaseModel):
     id: int
@@ -43,6 +47,7 @@ class FriendResponse(BaseModel):
     id: int
     username: str
     accepted: bool
+    can_accept: bool
     class Config:
         orm_mode = True
 
@@ -114,7 +119,12 @@ class HugSession(Base):
 Base.metadata.create_all(bind=engine)
 
 
-SECRET_KEY = "your-secret-key-here"  # In production, use a proper secret key
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-insecure-key")
+if not SECRET_KEY:
+    import warnings
+    warnings.warn("SECRET_KEY not set! Using insecure default key. This should NEVER happen in production.")
+    SECRET_KEY = "insecure-default-key-for-dev-only"
+    
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -378,7 +388,6 @@ async def get_friends(current_user: User = Depends(get_current_user), db: Sessio
         (friendship.c.user_id == current_user.id) | 
         (friendship.c.friend_id == current_user.id)
     ).all()
-    
     result = []
     for fr in user_friendships:
         # Determine which ID is the friend's ID
@@ -389,7 +398,8 @@ async def get_friends(current_user: User = Depends(get_current_user), db: Sessio
             result.append({
                 "id": friend.id,
                 "username": friend.username,
-                "accepted": fr.accepted
+                "accepted": fr.accepted,
+                "can_accept": fr.user_id != current_user.id and not fr.accepted
             })
     
     return result

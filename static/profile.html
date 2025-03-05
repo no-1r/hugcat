@@ -247,9 +247,9 @@ async function fetchFriends() {
                         <div>
                             ${friend.accepted ? 
                                 `<button onclick="initHugSession(${friend.id})">Hug</button>` : 
-                                (friend.id === currentUser.id ? 
-                                    `<button onclick="acceptFriendRequest(${friend.id})">Accept</button>` : 
-                                    '<span>Pending</span>'
+                                (friend.can_accept ? 
+                                  `<button onclick="acceptFriendRequest(${friend.id})">Accept</button>` : 
+                                  '<span>Pending</span>'
                                 )
                             }
                             <button onclick="removeFriend(${friend.id})">Remove</button>
