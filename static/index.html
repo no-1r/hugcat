@@ -107,6 +107,10 @@
             flex-direction: column;
             gap: 5px;
         }
+
+
+        
+        
         
         .mode-label {
             font-family: 'Press Start 2P', cursive;
@@ -149,6 +153,62 @@
             font-size: 10px;
             display: none;
         }
+
+        .friend-selector {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .friend-selector-inner {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 80%;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+
+        .friend-selector h3 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .friend-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 5px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+
+        .friend-item span {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+        }
+
+        .friend-item button {
+            background-color: #FFD1DC;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            cursor: pointer;
+        }
+
+            
     </style>
 </head>
 <body>
@@ -167,6 +227,23 @@
             <button id="friend-mode" class="mode-button">FRIEND</button>
         </div>
     </div>
+
+    
+
+
+
+    <div id="friend-selector" class="friend-selector" style="display: none;">
+        <div class="friend-selector-inner">
+            <h3>Select a Friend to Hug</h3>
+            <div id="friend-selector-list">
+                
+            </div>
+            <button id="close-friend-selector" class="navbar-button">Cancel</button>
+        </div>
+    </div>
+    
+
+    
     
     <h1 id="title">hugz</h1>  
     
@@ -314,9 +391,13 @@
             }
         }, 5000);
            
-        // Cat click handler - different for public and private sessions
         cat.addEventListener("click", async () => {
-            if (isPrivateSession) {
+            if (hugInProgress) {
+                console.log("Hug in progress, ignoring click");
+                return;
+            }
+            
+            if (isPrivateSession && sessionKey) {
                 // Private session ready endpoint
                 if (!token) {
                     alert('Please log in to participate in private hugs');
@@ -325,13 +406,19 @@
                 }
                 
                 try {
-                    await fetch(`/ready/${sessionKey}`, {
+                    console.log(`Sending ready signal for private session: ${sessionKey}`);
+                    const response = await fetch(`/ready/${sessionKey}`, {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${token}`
                         }
                     });
-                    console.log('Private session ready signal sent');
+                    
+                    if (response.ok) {
+                        console.log('Private session ready signal sent successfully');
+                    } else {
+                        console.error('Error sending ready signal:', await response.text());
+                    }
                 } catch (error) {
                     console.error('Error sending ready signal:', error);
                 }
@@ -344,7 +431,6 @@
             // Show meow effect
             showMeowEffect();
         });
-        
         function showMeowEffect() {
             const meow = document.createElement("div");
             meow.classList.add("meow-text");
@@ -425,6 +511,8 @@
                             hugInProgress = false;
                         }, 2000);
                     }
+                } else {
+                    console.error("Error checking private status:", await response.text());
                 }
             } catch (error) {
                 console.error("Private status fetch error:", error);
@@ -473,6 +561,41 @@
             checkForSessionKey();
             setInterval(checkStatus, 750); // Start the status polling
         });
+
+        async function initHugSession(friendId) {
+            try {
+                const response = await fetch('/hug-session/create', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ friend_id: friendId })
+                });
+                
+                if (response.ok) {
+                    const session = await response.json();
+                    // Close the friend selector
+                    document.getElementById('friend-selector').style.display = 'none';
+                    // Switch to the session
+                    isPrivateSession = true;
+                    sessionKey = session.session_key;
+                    document.getElementById('public-mode').classList.remove('active');
+                    document.getElementById('friend-mode').classList.add('active');
+                    document.getElementById('title').textContent = `Hug with ${session.friend_username}`;
+                } else {
+                    alert('Failed to create hug session');
+                }
+            } catch (error) {
+                console.error('Error creating hug session:', error);
+                alert('Error creating hug session');
+            }
+        }
+                
+
+
+
+
     </script>
 </body>
 </html>
