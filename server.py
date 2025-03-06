@@ -287,6 +287,7 @@ async def create_hug_session(request: HugSessionCreate,
         "friend_username": friend.username
     }
 
+
 @app.get("/hug-session/{session_key}")
 async def get_hug_session(session_key: str, 
                           current_user: User = Depends(get_current_user), 
@@ -304,6 +305,16 @@ async def get_hug_session(session_key: str,
     friend_id = session.recipient_id if current_user.id == session.initiator_id else session.initiator_id
     friend = db.query(User).filter(User.id == friend_id).first()
     
+    # Make sure the in-memory session exists
+    if session_key not in hug_sessions:
+        # Recreate it if missing
+        hug_sessions[session_key] = {
+            "users": [session.initiator_id, session.recipient_id],
+            "ready_users": [],
+            "active": session.active,
+            "start_time": 0
+        }
+    
     return {
         "id": session.id,
         "session_key": session_key,
@@ -311,7 +322,6 @@ async def get_hug_session(session_key: str,
         "active": session.active,
         "created_at": session.created_at
     }
-
 @app.post("/ready/{session_key}")
 async def player_ready(session_key: str, current_user: User = Depends(get_current_user)):
     # Check if this is a private session key
@@ -347,28 +357,55 @@ async def player_ready(session_key: str, current_user: User = Depends(get_curren
 # Also fix the status endpoint to properly handle session keys
 @app.get("/status/{session_key}")
 async def check_session_status(session_key: str):
-    # Check if session exists
-    if session_key not in hug_sessions:
-        raise HTTPException(status_code=404, detail="Hug session not found")
-    
-    session = hug_sessions[session_key]
-    
-    # Check if hug is active
-    if "start_time" in session and session["start_time"] > 0:
-        if time.time() - session["start_time"] < 3:
+    # Check if this is a private session key (UUID format)
+    if len(session_key) >= 30:  # UUID keys are long
+        # Check if session exists
+        if session_key not in hug_sessions:
+            raise HTTPException(status_code=404, detail="Hug session not found")
+        
+        session = hug_sessions[session_key]
+        
+        # Check if hug is active
+        if "start_time" in session and session["start_time"] > 0:
+            if time.time() - session["start_time"] < 3:
+                return {"status": "hug"}
+            else:
+                session["start_time"] = 0
+                session["ready_users"] = []
+                return {"status": "waiting"}
+        
+        # Check if both users are ready
+        if len(session["ready_users"]) >= 2:
+            print(f"Sending hugs in session {session_key}!")
+            session["start_time"] = time.time()
             return {"status": "hug"}
-        else:
-            session["start_time"] = 0
-            session["ready_users"] = []
+        
+        return {"status": "waiting"}
+    else:
+        # This is a public session, delegate to the global status check
+        try:
+            ready_players = [player for player in sessions if sessions[player]["ready"]]
+            if hug_active:
+                if time.time() - hug_start_time < 3:
+                    return {"status": "hug"}
+                else:
+                    hug_active = False
+            
+            if len(ready_players) >= 2:
+                print("sending hugs!!")
+                hug_active = True
+                hug_start_time = time.time()
+                
+                for player in sessions:
+                    sessions[player]["ready"] = False
+                
+                return {"status": "hug"}
+            
             return {"status": "waiting"}
-    
-    # Check if both users are ready
-    if len(session["ready_users"]) >= 2:
-        print(f"Sending hugs in session {session_key}!")
-        session["start_time"] = time.time()
-        return {"status": "hug"}
-    
-    return {"status": "waiting"}
+        except Exception as e:
+            print(f"error in /status: {e}")
+            return {"status": "error", "message": str(e)}
+        
 
 @app.post("/register")
 async def register(user: UserCreate):
@@ -498,12 +535,45 @@ async def remove_friend(friend_id: int,
     return {"message": "Friend removed successfully"}
 
 
-@app.post("/ready/{player_id}")
-async def player_ready(player_id: str):
-    if player_id not in sessions: 
-        sessions[player_id] = {"ready": False, "active": True}
-    sessions[player_id]["ready"] = True 
-    return{"message": "player is ready"}
+@app.post("/ready/{session_key}")
+async def player_ready(session_key: str, current_user: User = Depends(get_current_user) or None):
+    # Check if this is a private session key (UUID format)
+    if len(session_key) >= 30:  # UUID keys are long
+        # This is a private session
+        if session_key not in hug_sessions:
+            raise HTTPException(status_code=404, detail="Hug session not found")
+        
+        # Make sure we have a current user
+        if not current_user:
+            raise HTTPException(status_code=401, detail="Authentication required for private sessions")
+        
+        # Check if user is part of this session
+        if current_user.id not in hug_sessions[session_key]["users"]:
+            raise HTTPException(status_code=403, detail="You don't have access to this session")
+        
+        # Mark user as ready
+        if current_user.id not in hug_sessions[session_key]["ready_users"]:
+            hug_sessions[session_key]["ready_users"].append(current_user.id)
+            
+        print(f"User {current_user.username} ready in session {session_key}. Ready users: {hug_sessions[session_key]['ready_users']}")
+        
+        # If both users are ready, trigger the hug immediately
+        if len(hug_sessions[session_key]["ready_users"]) >= 2:
+            hug_sessions[session_key]["start_time"] = time.time()
+            print(f"Hug triggered in session {session_key}!")
+        
+        return {"message": "Ready status set"}
+    else:
+        # This is a public session
+        if not current_user:
+            player_id = session_key
+        else:
+            player_id = str(current_user.id)
+            
+        if player_id not in sessions:
+            sessions[player_id] = {"ready": False, "active": True}
+        sessions[player_id]["ready"] = True
+        return {"message": "Player is ready"}
 
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: SessionLocal = Depends(get_db)):
