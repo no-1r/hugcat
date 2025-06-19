@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hugz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/appleicon.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/static/images/appleicon.png">
+    
+
+
+
+
+    
+    <style>
+        @keyframes meowFade {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            50% { transform: translateY(-10px) scale(1.2); opacity: 1; }
+            100% { transform: translateY(-20px) scale(1); opacity: 0; }
+        }
+        #cat-container {
+        position: relative;
+        display: inline-block;
+
+        }
+
+        .meow-text {
+            position: absolute;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            color: #7D6E83;
+            pointer-events: none;
+            animation: meowFade 1s ease-out;
+            white-space: nowrap;
+            left: 50%;
+            top: 0;
+            transform: translate(-100%, -100%);
+        }
+
+        
+
+        body {
+                display: flex; 
+                flex-direction: column;
+                justify-content: center; 
+                align-items: center; 
+                height: 100vh; 
+                background-image: url("/static/images/background.png"); 
+                background-repeat: no-repeat; 
+                background-position: center center; 
+                background-attachment: fixed; 
+                background-size: cover; 
+                background-color: #ede9da; 
+                }
+        
+        #title {
+
+            position: absolute;
+            top: 80px; /* Moves it higher */
+            left: 50%;
+            transform: translateX(-50%); 
+            font-family: 'Press Start 2P';
+            font-size: 24px;
+            color: black;
+            text-align: center;
+            text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
+            
+        }
+        #cat { width: 200px; height: auto; cursor: pointer; transition: transform 0.2s ease; }
+        #cat:active { transform: scale(1.1); }
+    </style>
+</head>
+<body>
+    <h1 id="title">hugz</h1>  
+    <div id="cat-container">
+        <img id="cat" src="/static/images/cat1.png" alt="Stinker">
+    </div>
+  
+    
+    
+    <script>
+        const cat = document.getElementById("cat");
+        const playerId = Math.floor(Math.random() * 1000000).toString(); // Unique player ID
+        let hugInProgress = false;
+
+        const images = {
+            base: "/static/images/cat1.png",
+            hug: "/static/images/both_cath_hug.gif",
+            idle: ["/static/images/cat_tail_wag.gif", "/static/images/cat_blinking.gif"]
+        };
+
+        // Preload images
+        [images.base, images.hug, ...images.idle].forEach(src => {
+            const img = new Image();
+            img.src = src;
+        });
+
+        function playIdleAnimation() {
+            if (hugInProgress) {
+                console.log("Skipping idle animation: hug is in progress");
+                return;  
+            }
+
+            console.log("Playing idle animation...");
+
+            const selectedAnimation = images.idle[Math.floor(Math.random() * images.idle.length)];
+            console.log("Selected animation:", selectedAnimation);
+            
+            cat.src = selectedAnimation;
+
+            setTimeout(() => {
+                console.log("Idle animation ended. Returning to base.");
+                cat.src = images.base; 
+            }, 2000);
+        }
+
+        // Idle animation triggers every 5 seconds, 70% chance
+        setInterval(() => {
+            console.log("Checking if idle animation should play...");
+            if (Math.random() < 0.7 && !hugInProgress) {
+                playIdleAnimation();
+            } else {
+                console.log("Idle animation skipped.");
+            }
+        }, 5000);
+           
+        
+
+        cat.addEventListener("click", async () => {
+            console.log("Cat clicked, sending 'ready'");
+            await fetch(`${window.location.origin}/ready/${playerId}`, { method: "POST" });
+        });
+        
+        function showMeowEffect() {
+            const meow = document.createElement("div");
+            meow.classList.add("meow-text");
+            meow.innerText = "*meow*";
+
+            const catContainer = document.getElementById("cat-container");
+            catContainer.appendChild(meow); 
+
+            // Small random offset for variation
+            const offsetX = (Math.random() * 50) - 30; // Left/right random movement
+            const offsetY = -10; // Moves slightly above
+
+            meow.style.left = `50%`;
+            meow.style.top = `30%`;
+            meow.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+
+            setTimeout(() => {
+                meow.remove();
+            }, 1000);
+        }
+
+        document.getElementById("cat").addEventListener("click", showMeowEffect);
+
+        async function checkStatus() {
+            try {
+                const response = await fetch(`${window.location.origin}/status`);
+                if (!response.ok) {
+                    console.error("Server error:", response.status);
+                    return;
+                }
+                const data = await response.json();
+                if (!data || !data.status) {
+                    console.error("Invalid response:", data);
+                    return;
+                }
+                console.log("Received status:", data.status);
+
+                if (data.status === "hug" && !hugInProgress) {
+                    hugInProgress = true;
+                    console.log("Hug animation started.");
+                    cat.src = images.hug;
+                    
+                    setTimeout(() => { 
+                        console.log("Hug animation ended.");
+                        cat.src = images.base; 
+                        hugInProgress = false;
+                    }, 2000);
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+            }
+        }
+
+        setInterval(checkStatus, 750); // Poll every 750ms
+    </script>
+</body>
+</html>

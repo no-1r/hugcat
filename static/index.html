@@ -9,11 +9,6 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/static/images/appleicon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/static/images/appleicon.png">
     
-
-
-
-
-    
     <style>
         @keyframes meowFade {
             0% { transform: translateY(0) scale(1); opacity: 1; }
@@ -21,9 +16,8 @@
             100% { transform: translateY(-20px) scale(1); opacity: 0; }
         }
         #cat-container {
-        position: relative;
-        display: inline-block;
-
+            position: relative;
+            display: inline-block;
         }
 
         .meow-text {
@@ -39,26 +33,25 @@
             transform: translate(-100%, -100%);
         }
 
-        
-
         body {
-                display: flex; 
-                flex-direction: column;
-                justify-content: center; 
-                align-items: center; 
-                height: 100vh; 
-                background-image: url("/static/images/background.png"); 
-                background-repeat: no-repeat; 
-                background-position: center center; 
-                background-attachment: fixed; 
-                background-size: cover; 
-                background-color: #ede9da; 
-                }
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            background-image: url("/static/images/background.png"); 
+            background-repeat: no-repeat; 
+            background-position: center center; 
+            background-attachment: fixed; 
+            background-size: cover; 
+            background-color: #ede9da; 
+            margin: 0;
+            padding: 0;
+        }
         
         #title {
-
             position: absolute;
-            top: 80px; /* Moves it higher */
+            top: 80px;
             left: 50%;
             transform: translateX(-50%); 
             font-family: 'Press Start 2P';
@@ -66,25 +59,255 @@
             color: black;
             text-align: center;
             text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
-            
         }
-        #cat { width: 200px; height: auto; cursor: pointer; transition: transform 0.2s ease; }
-        #cat:active { transform: scale(1.1); }
+        
+        #cat { 
+            width: 200px; 
+            height: auto; 
+            cursor: pointer; 
+            transition: transform 0.2s ease; 
+        }
+        
+        #cat:active { 
+            transform: scale(1.1); 
+        }
+        
+        /* Nav bar styles */
+        .navbar {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .navbar-button {
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            color: #333;
+            display: inline-block;
+        }
+        
+        .navbar-button:hover {
+            background-color: rgba(255, 255, 255, 1);
+        }
+        
+        /* Mode switcher */
+        .mode-switch {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .mode-label {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            color: black;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 4px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .mode-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .mode-button {
+            flex: 1;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 5px;
+            padding: 6px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            cursor: pointer;
+        }
+        
+        .mode-button.active {
+            background-color: #FFD1DC; /* Light pink for active mode */
+        }
+        
+        /* Friend selector modal */
+        .friend-selector {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .friend-selector-inner {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 80%;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+
+        .friend-selector h3 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .friend-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 5px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+
+        .friend-item span {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+        }
+
+        .friend-item button {
+            background-color: #FFD1DC;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            cursor: pointer;
+        }
+        
+        /* Status indicator */
+        #status-indicator {
+            position: fixed;
+            bottom: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            text-align: center;
+        }
+        
+        /* Friend selection panel */
+        #friend-selection-panel {
+            position: fixed;
+            right: 10px;
+            top: 50px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            max-height: 70vh;
+            overflow-y: auto;
+            display: none;
+            z-index: 90;
+            width: 250px;
+        }
+        
+        #friend-selection-panel h3 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        
+        .friend-list-item {
+            padding: 8px;
+            margin-bottom: 5px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .friend-list-item span {
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+        }
+        
+        .hug-friend-btn {
+            background-color: #FFD1DC;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .pending-label {
+            font-size: 10px;
+            color: #888;
+        }
     </style>
 </head>
 <body>
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <a href="/profile" class="navbar-button">PROFILE</a>
+        <button id="friends-button" class="navbar-button">FRIENDS</button>
+        <button id="login-button" class="navbar-button">LOGIN</button>
+        <button id="logout-button" class="navbar-button" style="display: none;">LOGOUT</button>
+    </div>
+    
+    <!-- Mode Switcher -->
+    <div class="mode-switch">
+        <div class="mode-label">MODE</div>
+        <div class="mode-buttons">
+            <button id="public-mode" class="mode-button active">PUBLIC</button>
+            <button id="friend-mode" class="mode-button">FRIEND</button>
+        </div>
+    </div>
+
+    <!-- Friend Selection Panel (shows in main UI) -->
+    <div id="friend-selection-panel">
+        <h3>Your Friends</h3>
+        <div id="friends-list-container">
+            <p>Loading friends...</p>
+        </div>
+    </div>
+
+    <!-- Title -->
     <h1 id="title">hugz</h1>  
+    
+    <!-- Cat Container -->
     <div id="cat-container">
         <img id="cat" src="/static/images/cat1.png" alt="Stinker">
     </div>
+    
+    <!-- Status Indicator -->
+    <div id="status-indicator"></div>
   
-    
-    
     <script>
         const cat = document.getElementById("cat");
-        const playerId = Math.floor(Math.random() * 1000000).toString(); // Unique player ID
+        let playerId = Math.floor(Math.random() * 1000000).toString(); // Default player ID
         let hugInProgress = false;
+        let isPrivateSession = false;
+        let sessionKey = null;
+        let token = localStorage.getItem('hugz_token');
+        let currentUser = null;
+        let friendsList = [];
+        let statusCheckInterval = null;
 
+        // Image assets
         const images = {
             base: "/static/images/cat1.png",
             hug: "/static/images/both_cath_hug.gif",
@@ -96,7 +319,157 @@
             const img = new Image();
             img.src = src;
         });
+        
+        // Check for session parameter in URL
+        function checkForSessionKey() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sessionParam = urlParams.get('session');
+            
+            if (sessionParam) {
+                sessionKey = sessionParam;
+                isPrivateSession = true;
+                document.getElementById('public-mode').classList.remove('active');
+                document.getElementById('friend-mode').classList.add('active');
+                document.getElementById('title').textContent = 'Private Hug';
+                
+                // Fetch session details
+                fetchSessionDetails(sessionKey);
+                updateStatusIndicator("Waiting for friend to join...");
+            }
+        }
+        
+        // Update status indicator
+        function updateStatusIndicator(message) {
+            const indicator = document.getElementById('status-indicator');
+            indicator.textContent = message;
+            indicator.style.display = message ? 'block' : 'none';
+        }
+        
+        // Update UI based on authentication status
+        function updateAuthUI() {
+            if (token) {
+                document.getElementById('login-button').style.display = 'none';
+                document.getElementById('logout-button').style.display = 'inline-block';
+                document.getElementById('friends-button').style.display = 'inline-block';
+                
+                // If we have a token, use the actual user ID instead of random
+                fetchUserInfo();
+                fetchFriends(); // Load friends list
+            } else {
+                document.getElementById('login-button').style.display = 'inline-block';
+                document.getElementById('logout-button').style.display = 'none';
+                document.getElementById('friends-button').style.display = 'none';
+                
+                // Force public mode for non-authenticated users
+                if (isPrivateSession) {
+                    alert('Please log in to join private hug sessions');
+                    window.location.href = '/profile';
+                }
+            }
+        }
+        
+        // Fetch user info
+        async function fetchUserInfo() {
+            try {
+                const response = await fetch('/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    currentUser = await response.json();
+                    console.log('Current user:', currentUser);
+                    playerId = currentUser.id.toString(); // Use actual user ID
+                } else {
+                    // Token is invalid
+                    localStorage.removeItem('hugz_token');
+                    token = null;
+                    updateAuthUI();
+                }
+            } catch (error) {
+                console.error('Error fetching user info:', error);
+            }
+        }
+        
+        // Fetch friends list
+        async function fetchFriends() {
+            try {
+                const response = await fetch('/friends', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    friendsList = await response.json();
+                    console.log('Friends list:', friendsList);
+                    
+                    // Update the friends panel
+                    updateFriendsPanel();
+                } else {
+                    console.error('Failed to load friends list');
+                }
+            } catch (error) {
+                console.error('Error fetching friends:', error);
+            }
+        }
+        
+        // Update friends panel with friends list
+        function updateFriendsPanel() {
+            const container = document.getElementById('friends-list-container');
+            
+            if (friendsList.length === 0) {
+                container.innerHTML = '<p>You don\'t have any friends yet. Add friends in your profile!</p>';
+                return;
+            }
+            
+            let html = '';
+            friendsList.forEach(friend => {
+                if (friend.accepted) {
+                    html += `
+                        <div class="friend-list-item">
+                            <span>${friend.username}</span>
+                            <button class="hug-friend-btn" onclick="initHugSession(${friend.id})">Hug</button>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="friend-list-item">
+                            <span>${friend.username}</span>
+                            <span class="pending-label">${friend.can_accept ? 'Accept in profile' : 'Pending'}</span>
+                        </div>
+                    `;
+                }
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        // Fetch session details
+        async function fetchSessionDetails(key) {
+            try {
+                const response = await fetch(`/hug-session/${key}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const sessionData = await response.json();
+                    document.getElementById('title').textContent = `Hug with ${sessionData.friend_username}`;
+                    updateStatusIndicator(`Waiting for ${sessionData.friend_username} to join...`);
+                } else {
+                    alert('Failed to load hug session');
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Error fetching session:', error);
+                alert('Error loading hug session');
+            }
+        }
 
+        // Play idle animation
         function playIdleAnimation() {
             if (hugInProgress) {
                 console.log("Skipping idle animation: hug is in progress");
@@ -112,27 +485,64 @@
 
             setTimeout(() => {
                 console.log("Idle animation ended. Returning to base.");
-                cat.src = images.base; 
+                if (!hugInProgress) { // Check again to avoid overwriting hug animation
+                    cat.src = images.base; 
+                }
             }, 2000);
         }
 
         // Idle animation triggers every 5 seconds, 70% chance
         setInterval(() => {
-            console.log("Checking if idle animation should play...");
             if (Math.random() < 0.7 && !hugInProgress) {
                 playIdleAnimation();
-            } else {
-                console.log("Idle animation skipped.");
             }
         }, 5000);
            
-        
-
+        // Cat click handler
         cat.addEventListener("click", async () => {
-            console.log("Cat clicked, sending 'ready'");
-            await fetch(`${window.location.origin}/ready/${playerId}`, { method: "POST" });
+            if (hugInProgress) {
+                console.log("Hug in progress, ignoring click");
+                return;
+            }
+            
+            if (isPrivateSession && sessionKey) {
+                // Private session ready endpoint
+                if (!token) {
+                    alert('Please log in to participate in private hugs');
+                    window.location.href = '/profile';
+                    return;
+                }
+                
+                try {
+                    console.log(`Sending ready signal for private session: ${sessionKey}`);
+                    const response = await fetch(`/ready/${sessionKey}`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        console.log('Private session ready signal sent successfully');
+                        updateStatusIndicator("Ready! Waiting for your friend...");
+                    } else {
+                        console.error('Error sending ready signal:', await response.text());
+                    }
+                } catch (error) {
+                    console.error('Error sending ready signal:', error);
+                }
+            } else {
+                // Public session ready endpoint
+                console.log("Cat clicked, sending 'ready' for public session");
+                await fetch(`/ready/${playerId}`, { method: "POST" });
+                updateStatusIndicator("Ready! Waiting for someone else...");
+            }
+            
+            // Show meow effect
+            showMeowEffect();
         });
         
+        // Show meow text effect
         function showMeowEffect() {
             const meow = document.createElement("div");
             meow.classList.add("meow-text");
@@ -154,9 +564,25 @@
             }, 1000);
         }
 
-        document.getElementById("cat").addEventListener("click", showMeowEffect);
-
-        async function checkStatus() {
+        // Start status checking - different for public and private
+        function startStatusChecking() {
+            // Clear any existing interval
+            if (statusCheckInterval) {
+                clearInterval(statusCheckInterval);
+            }
+            
+            // Set new interval
+            statusCheckInterval = setInterval(() => {
+                if (isPrivateSession) {
+                    checkPrivateStatus();
+                } else {
+                    checkPublicStatus();
+                }
+            }, 750);
+        }
+        
+        // Check public session status
+        async function checkPublicStatus() {
             try {
                 const response = await fetch(`${window.location.origin}/status`);
                 if (!response.ok) {
@@ -168,25 +594,164 @@
                     console.error("Invalid response:", data);
                     return;
                 }
-                console.log("Received status:", data.status);
+                console.log("Received public status:", data.status);
 
                 if (data.status === "hug" && !hugInProgress) {
-                    hugInProgress = true;
-                    console.log("Hug animation started.");
-                    cat.src = images.hug;
-                    
-                    setTimeout(() => { 
-                        console.log("Hug animation ended.");
-                        cat.src = images.base; 
-                        hugInProgress = false;
-                    }, 2000);
+                    // Start hug animation
+                    startHugAnimation();
+                    updateStatusIndicator("Hugging! 💖");
+                } else if (data.status === "waiting") {
+                    // updateStatusIndicator("Waiting for someone to hug...");
                 }
             } catch (error) {
                 console.error("Fetch error:", error);
             }
         }
+        
+        // Check private session status
+        async function checkPrivateStatus() {
+            if (!sessionKey) return;
+            
+            try {
+                const response = await fetch(`/status/${sessionKey}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log("Received private status:", data.status);
+                    
+                    if (data.status === "hug" && !hugInProgress) {
+                        // Start hug animation
+                        startHugAnimation();
+                        updateStatusIndicator("Hugging! 💖");
+                    }
+                } else {
+                    console.error("Error checking private status:", await response.text());
+                }
+            } catch (error) {
+                console.error("Private status fetch error:", error);
+            }
+        }
+        
+        // Start the hug animation
+        function startHugAnimation() {
+            if (hugInProgress) return;
+            
+            hugInProgress = true;
+            console.log("Hug animation started!");
+            cat.src = images.hug;
+            
+            setTimeout(() => { 
+                console.log("Hug animation ended.");
+                cat.src = images.base; 
+                hugInProgress = false;
+                updateStatusIndicator("");
+            }, 3000);
+        }
+        
+        // Mode switching
+        document.getElementById('public-mode').addEventListener('click', () => {
+            if (isPrivateSession) {
+                // Remove session parameter and reload
+                window.location.href = '/';
+            } else {
+                document.getElementById('friend-mode').classList.remove('active');
+                document.getElementById('public-mode').classList.add('active');
+                document.getElementById('friend-selection-panel').style.display = 'none';
+                document.getElementById('title').textContent = 'hugz';
+                updateStatusIndicator("");
+            }
+        });
+        
+        document.getElementById('friend-mode').addEventListener('click', () => {
+            if (!token) {
+                alert('Please log in to use friend hugging');
+                window.location.href = '/profile';
+                return;
+            }
+            
+            document.getElementById('public-mode').classList.remove('active');
+            document.getElementById('friend-mode').classList.add('active');
+            document.getElementById('friend-selection-panel').style.display = 'block';
+            
+            // Refresh friends list
+            fetchFriends();
+        });
+        
+        // Friends button
+        document.getElementById('friends-button').addEventListener('click', () => {
+            const panel = document.getElementById('friend-selection-panel');
+            if (panel.style.display === 'block') {
+                panel.style.display = 'none';
+            } else {
+                panel.style.display = 'block';
+                fetchFriends(); // Refresh the list
+            }
+        });
+        
+        // Login/Logout buttons
+        document.getElementById('login-button').addEventListener('click', () => {
+            window.location.href = '/profile';
+        });
+        
+        document.getElementById('logout-button').addEventListener('click', () => {
+            localStorage.removeItem('hugz_token');
+            token = null;
+            playerId = Math.floor(Math.random() * 1000000).toString(); // Reset to random
+            updateAuthUI();
+            
+            // If in private session, redirect to public
+            if (isPrivateSession) {
+                window.location.href = '/';
+            }
+            
+            // Hide friends panel
+            document.getElementById('friend-selection-panel').style.display = 'none';
+        });
 
-        setInterval(checkStatus, 750); // Poll every 750ms
+        // Initialize friend hug session
+        async function initHugSession(friendId) {
+            try {
+                const response = await fetch('/hug-session/create', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ friend_id: friendId })
+                });
+                
+                if (response.ok) {
+                    const session = await response.json();
+                    // Hide the friend panel
+                    document.getElementById('friend-selection-panel').style.display = 'none';
+                    // Switch to the session
+                    isPrivateSession = true;
+                    sessionKey = session.session_key;
+                    document.getElementById('public-mode').classList.remove('active');
+                    document.getElementById('friend-mode').classList.add('active');
+                    document.getElementById('title').textContent = `Hug with ${session.friend_username}`;
+                    updateStatusIndicator(`Waiting for ${session.friend_username} to join...`);
+                    
+                    // Add session key to URL without reloading the page
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('session', session.session_key);
+                    window.history.pushState({}, '', url);
+                    
+                    console.log(`Created hug session with key: ${session.session_key}`);
+                } else {
+                    alert('Failed to create hug session');
+                }
+            } catch (error) {
+                console.error('Error creating hug session:', error);
+                alert('Error creating hug session');
+            }
+        }
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            updateAuthUI();
+            checkForSessionKey();
+            startStatusChecking();
+        });
     </script>
 </body>
 </html>
