@@ -5,7 +5,6 @@ from fastapi import HTTPException
 import uvicorn
 import time
 import os
-import re
 
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
@@ -14,24 +13,17 @@ from sqlalchemy import DateTime, Boolean, Table
 from passlib.context import CryptContext
 
 from datetime import datetime, timedelta, timezone
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 from fastapi import Depends, status, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.security.utils import get_authorization_scheme_param
 from jose import JWTError, jwt
 from typing import Optional, List
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
-from slowapi.middleware import SlowAPIMiddleware
 
 import uuid
 from dotenv import load_dotenv
 
 load_dotenv()
-
-# Rate limiter setup
-limiter = Limiter(key_func=get_remote_address)
 
 class UserResponse(BaseModel):
     id: int
@@ -46,45 +38,9 @@ class UserCreate(BaseModel):
     username: str
     email: str
     password: str
-    
-    @validator('username')
-    def validate_username(cls, v):
-        if not v or len(v.strip()) < 3:
-            raise ValueError('Username must be at least 3 characters long')
-        if len(v) > 50:
-            raise ValueError('Username must be less than 50 characters')
-        if not re.match(r'^[a-zA-Z0-9_-]+$', v):
-            raise ValueError('Username can only contain letters, numbers, hyphens and underscores')
-        return v.strip()
-    
-    @validator('email')
-    def validate_email(cls, v):
-        if not v or '@' not in v:
-            raise ValueError('Invalid email address')
-        if len(v) > 254:
-            raise ValueError('Email address too long')
-        return v.strip().lower()
-    
-    @validator('password')
-    def validate_password(cls, v):
-        if not v or len(v) < 8:
-            raise ValueError('Password must be at least 8 characters long')
-        if len(v) > 128:
-            raise ValueError('Password too long')
-        return v
 
 class FriendRequest(BaseModel):
     username: str
-    
-    @validator('username')
-    def validate_username(cls, v):
-        if not v or len(v.strip()) < 3:
-            raise ValueError('Username must be at least 3 characters long')
-        if len(v) > 50:
-            raise ValueError('Username too long')
-        if not re.match(r'^[a-zA-Z0-9_-]+$', v):
-            raise ValueError('Invalid username format')
-        return v.strip()
 
 class FriendResponse(BaseModel):
     id: int
@@ -96,12 +52,6 @@ class FriendResponse(BaseModel):
 
 class HugSessionCreate(BaseModel):
     friend_id: int
-    
-    @validator('friend_id')
-    def validate_friend_id(cls, v):
-        if not isinstance(v, int) or v <= 0:
-            raise ValueError('Invalid friend ID')
-        return v
 
 class HugSessionResponse(BaseModel):
     id: int
@@ -159,12 +109,11 @@ class HugSession(Base):
 
 Base.metadata.create_all(bind=engine)
 
-# Security: Ensure SECRET_KEY is properly set
-SECRET_KEY = os.getenv("SECRET_KEY")
-if not SECRET_KEY or SECRET_KEY in ["dev-only-insecure-key", "insecure-default-key-for-dev-only"]:
-    # For development, allow the insecure key with a warning
-    SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-insecure-key")
-    print("WARNING: Using development SECRET_KEY. Set a secure SECRET_KEY environment variable for production!")
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-insecure-key")
+if not SECRET_KEY:
+    import warnings
+    warnings.warn("SECRET_KEY not set! Using insecure default key. This should NEVER happen in production.")
+    SECRET_KEY = "insecure-default-key-for-dev-only"
     
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -214,9 +163,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: SessionLocal
         detail="Invalid authentication credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    if not token:
-        raise credentials_exception
-        
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
@@ -254,18 +200,7 @@ async def get_current_user_optional(request: Request, db: SessionLocal = Depends
 static_dir = os.path.abspath("static")
 print(f"Serving static files from: {static_dir}")
 
-app = FastAPI(
-    title="Hugz API",
-    description="A virtual hugging application",
-    version="1.0.0",
-    docs_url="/docs" if os.getenv("ENVIRONMENT") == "development" else None,  # Only enable docs in dev
-    redoc_url="/redoc" if os.getenv("ENVIRONMENT") == "development" else None
-)
-
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-app.add_middleware(SlowAPIMiddleware)
-
+app = FastAPI()
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # Serve the index.html file when accessing the root
@@ -276,27 +211,20 @@ async def serve_homepage():
     return FileResponse(os.path.join(static_dir, "index.html"))
 
 @app.get("/me", response_model=UserResponse)
-@limiter.limit("60/minute")
-async def read_users_me(request: Request, current_user: User = Depends(get_current_user)):
+async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 @app.get("/profile")
 async def serve_profile():
     return FileResponse(os.path.join(static_dir, "profile.html"))
 
-# Security: Get allowed origins from environment
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "").split(",")
-if not ALLOWED_ORIGINS or ALLOWED_ORIGINS == [""]:
-    # Default for development - you should set ALLOWED_ORIGINS in production
-    ALLOWED_ORIGINS = ["*"]  # Allow all for now, but you should restrict this
-    print("WARNING: CORS is allowing all origins. Set ALLOWED_ORIGINS environment variable for production!")
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=".*",
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["Authorization", "Content-Type"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Global state for public sessions
@@ -311,34 +239,12 @@ hug_sessions = {}  # session_key -> {users: [], ready_users: [], active: bool, s
 def is_private_session(session_key: str) -> bool:
     return len(session_key) >= 30 and '-' in session_key
 
-# Security: Add session cleanup
-def cleanup_old_sessions():
-    """Clean up old sessions periodically"""
-    current_time = time.time()
-    
-    # Clean up old public sessions (older than 1 hour)
-    expired_public = [pid for pid, data in public_sessions.items() 
-                     if current_time - data.get("timestamp", 0) > 3600]
-    for pid in expired_public:
-        del public_sessions[pid]
-    
-    # Clean up old private sessions (older than 24 hours)
-    expired_private = []
-    for session_key, session_data in hug_sessions.items():
-        if current_time - session_data.get("start_time", current_time) > 86400:
-            expired_private.append(session_key)
-    
-    for session_key in expired_private:
-        del hug_sessions[session_key]
-
 @app.post("/hug-session/create", response_model=HugSessionResponse)
-@limiter.limit("10/minute")
-async def create_hug_session(request: Request,
-                           hug_request: HugSessionCreate, 
+async def create_hug_session(request: HugSessionCreate, 
                            current_user: User = Depends(get_current_user), 
                            db: SessionLocal = Depends(get_db)):
     # Check if friend exists and is an accepted friend
-    friend = db.query(User).filter(User.id == hug_request.friend_id).first()
+    friend = db.query(User).filter(User.id == request.friend_id).first()
     if not friend:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -384,15 +290,9 @@ async def create_hug_session(request: Request,
     }
 
 @app.get("/hug-session/{session_key}")
-@limiter.limit("30/minute")
-async def get_hug_session(request: Request,
-                          session_key: str, 
+async def get_hug_session(session_key: str, 
                           current_user: User = Depends(get_current_user), 
                           db: SessionLocal = Depends(get_db)):
-    # Security: Validate session key format
-    if not is_private_session(session_key):
-        raise HTTPException(status_code=400, detail="Invalid session key format")
-        
     # Verify session exists
     session = db.query(HugSession).filter(HugSession.session_key == session_key).first()
     if not session:
@@ -425,14 +325,7 @@ async def get_hug_session(request: Request,
     }
 
 @app.post("/ready/{session_key}")
-@limiter.limit("60/minute")
-async def player_ready(request: Request,
-                      session_key: str, 
-                      current_user: Optional[User] = Depends(get_current_user_optional)):
-    # Security: Basic input validation
-    if not session_key or len(session_key) > 100:
-        raise HTTPException(status_code=400, detail="Invalid session key")
-        
+async def player_ready(session_key: str, request: Request, current_user: Optional[User] = Depends(get_current_user_optional)):
     if is_private_session(session_key):
         # This is a private session
         if not current_user:
@@ -470,12 +363,7 @@ async def player_ready(request: Request,
         return {"message": "Player is ready"}
 
 @app.get("/status/{session_key}")
-@limiter.limit("120/minute")
-async def check_session_status(request: Request, session_key: str):
-    # Security: Basic input validation
-    if not session_key or len(session_key) > 100:
-        raise HTTPException(status_code=400, detail="Invalid session key")
-        
+async def check_session_status(session_key: str):
     if is_private_session(session_key):
         # Check private session status
         if session_key not in hug_sessions:
@@ -503,11 +391,10 @@ async def check_session_status(request: Request, session_key: str):
     else:
         # This is checking public status with a specific session_key
         # For public sessions, redirect to the main status endpoint
-        return await check_public_status(request)
+        return await check_public_status()
 
 @app.get("/status")
-@limiter.limit("120/minute")
-async def check_public_status(request: Request):
+async def check_public_status():
     global public_hug_active, public_hug_start_time
     
     try:
@@ -544,38 +431,36 @@ async def check_public_status(request: Request):
         
     except Exception as e:
         print(f"Error in public status check: {e}")
-        return {"status": "error", "message": "Internal server error"}
+        return {"status": "error", "message": str(e)}
 
 @app.post("/register")
-@limiter.limit("5/minute")
-async def register(request: Request, user: UserCreate):
+async def register(user: UserCreate):
     db = SessionLocal() 
 
-    try:
-        existing_user = db.query(User).filter(User.username == user.username).first()
+    existing_user = db.query(User).filter(User.username == user.username).first()
 
-        if existing_user: 
-            raise HTTPException(status_code=400, detail="username already exists")
-
-        existing_email = db.query(User).filter(User.email == user.email).first()
-        
-        if existing_email:
-            raise HTTPException(status_code=400, detail="Email already exists")
-
-        hashed_password = get_password_hash(user.password)
-        new_user = User(username=user.username, email=user.email, hashed_password=hashed_password)
-        
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
-
-        return {"user_id": new_user.id, "username": new_user.username}
-    finally:
+    if existing_user: 
         db.close()
+        raise HTTPException(status_code=400, detail="username already exists")
+
+    existing_email = db.query(User).filter(User.email == user.email).first()
+    
+    if existing_email:
+        db.close()
+        raise HTTPException(status_code=400, detail="Email already exists")
+
+    hashed_password = get_password_hash(user.password)
+    new_user = User(username=user.username, email=user.email, hashed_password=hashed_password)
+    
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    db.close()
+
+    return {"user_id": new_user.id, "username": new_user.username}
 
 @app.get("/friends", response_model=List[FriendResponse])
-@limiter.limit("30/minute")
-async def get_friends(request: Request, current_user: User = Depends(get_current_user), db: SessionLocal = Depends(get_db)):
+async def get_friends(current_user: User = Depends(get_current_user), db: SessionLocal = Depends(get_db)):
     # Get all friendships where the user is either the user or the friend
     user_friendships = db.query(friendship).filter(
         (friendship.c.user_id == current_user.id) | 
@@ -598,13 +483,11 @@ async def get_friends(request: Request, current_user: User = Depends(get_current
     return result
 
 @app.post("/friends/request", status_code=status.HTTP_201_CREATED)
-@limiter.limit("10/minute")
-async def send_friend_request(request: Request,
-                             friend_request: FriendRequest, 
+async def send_friend_request(request: FriendRequest, 
                              current_user: User = Depends(get_current_user), 
                              db: SessionLocal = Depends(get_db)):
     # Find the user to send the friend request to
-    friend = db.query(User).filter(User.username == friend_request.username).first()
+    friend = db.query(User).filter(User.username == request.username).first()
     if not friend:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -633,9 +516,7 @@ async def send_friend_request(request: Request,
     return {"message": "Friend request sent successfully"}
 
 @app.post("/friends/accept/{friend_id}", status_code=status.HTTP_200_OK)
-@limiter.limit("20/minute")
-async def accept_friend_request(request: Request,
-                               friend_id: int, 
+async def accept_friend_request(friend_id: int, 
                                current_user: User = Depends(get_current_user), 
                                db: SessionLocal = Depends(get_db)):
     # Check if friend request exists
@@ -660,9 +541,7 @@ async def accept_friend_request(request: Request,
     return {"message": "Friend request accepted"}
 
 @app.delete("/friends/{friend_id}", status_code=status.HTTP_200_OK)
-@limiter.limit("10/minute")
-async def remove_friend(request: Request,
-                       friend_id: int, 
+async def remove_friend(friend_id: int, 
                        current_user: User = Depends(get_current_user), 
                        db: SessionLocal = Depends(get_db)):
     # Delete the friendship in both directions
@@ -680,10 +559,7 @@ async def remove_friend(request: Request,
     return {"message": "Friend removed successfully"}
 
 @app.post("/token", response_model=Token)
-@limiter.limit("10/minute")
-async def login_for_access_token(request: Request,
-                                form_data: OAuth2PasswordRequestForm = Depends(), 
-                                db: SessionLocal = Depends(get_db)):
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: SessionLocal = Depends(get_db)):
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -696,20 +572,6 @@ async def login_for_access_token(request: Request,
         data={"sub": user.username}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
-
-# Cleanup task - run periodically
-import threading
-import atexit
-
-def periodic_cleanup():
-    cleanup_old_sessions()
-    # Schedule next cleanup in 1 hour
-    timer = threading.Timer(3600.0, periodic_cleanup)
-    timer.daemon = True
-    timer.start()
-
-# Start cleanup task
-periodic_cleanup()
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))  # Railway assigns PORT dynamically

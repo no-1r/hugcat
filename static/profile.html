@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hugz Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <!-- Add your CSS styles here -->
+    <style>
+        /* Similar style to your index.html but with profile-specific elements */
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url("/static/images/background.png");
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+            width: 80%;
+            max-width: 800px;
+        }
+        
+        .tab-panel {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            margin-right: 5px;
+        }
+        
+        .tab.active {
+            background-color: white;
+            border-bottom: 3px solid #7D6E83;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* More styling for forms, buttons, etc. */
+    </style>
+</head>
+<body>
+    <h1>Hugz Profile</h1>
+    
+    <!-- Login/Register Container (shown when not logged in) -->
+    <div id="auth-container" class="container">
+        <div class="tab-panel">
+            <div class="tab active" data-tab="login">Login</div>
+            <div class="tab" data-tab="register">Register</div>
+        </div>
+        
+        <div id="login" class="tab-content active">
+            <h2>Login</h2>
+            <form id="login-form">
+                <div>
+                    <label for="login-username">Username:</label>
+                    <input type="text" id="login-username" required>
+                </div>
+                <div>
+                    <label for="login-password">Password:</label>
+                    <input type="password" id="login-password" required>
+                </div>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+        
+        <div id="register" class="tab-content">
+            <h2>Register</h2>
+            <form id="register-form">
+                <div>
+                    <label for="register-username">Username:</label>
+                    <input type="text" id="register-username" required>
+                </div>
+                <div>
+                    <label for="register-email">Email:</label>
+                    <input type="email" id="register-email" required>
+                </div>
+                <div>
+                    <label for="register-password">Password:</label>
+                    <input type="password" id="register-password" required>
+                </div>
+                <div>
+                    <label for="register-confirm">Confirm Password:</label>
+                    <input type="password" id="register-confirm" required>
+                </div>
+                <button type="submit">Register</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Profile Container (shown when logged in) -->
+    <div id="profile-container" class="container" style="display: none;">
+        <div class="tab-panel">
+            <div class="tab active" data-tab="profile">My Profile</div>
+            <div class="tab" data-tab="friends">My Friends</div>
+            <div class="tab" data-tab="add-friend">Add Friend</div>
+        </div>
+        
+        <div id="profile" class="tab-content active">
+            <h2>My Profile</h2>
+            <div id="user-info">
+                <!-- User info will be loaded here -->
+            </div>
+            <button id="logout-btn">Logout</button>
+            <a href="/">Back to Main Page</a>
+        </div>
+        
+        <div id="friends" class="tab-content">
+            <h2>My Friends</h2>
+            <div id="friends-list">
+                <!-- Friends will be loaded here -->
+            </div>
+        </div>
+        
+        <div id="add-friend" class="tab-content">
+            <h2>Add Friend</h2>
+            <form id="add-friend-form">
+                <div>
+                    <label for="friend-username">Friend's Username:</label>
+                    <input type="text" id="friend-username" required>
+                </div>
+                <button type="submit">Send Friend Request</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- JavaScript code -->
+    <script>
+        // Add this inside your <script> tags
+// Global variables
+let token = localStorage.getItem('hugz_token');
+let currentUser = null;
+
+// Function to switch tabs
+function switchTab(tabName, containerSelector = '') {
+    // Find all tabs within the container (or all tabs if no container is specified)
+    const tabs = document.querySelectorAll(containerSelector + ' .tab');
+    const contents = document.querySelectorAll(containerSelector + ' .tab-content');
+    
+    // Deactivate all tabs and contents
+    tabs.forEach(tab => tab.classList.remove('active'));
+    contents.forEach(content => content.classList.remove('active'));
+    
+    // Activate the selected tab
+    document.querySelector(containerSelector + ' .tab[data-tab="' + tabName + '"]').classList.add('active');
+    document.querySelector(containerSelector + ' #' + tabName).classList.add('active');
+}
+
+// Function to show notifications
+function showNotification(message, isError = false) {
+    // You can enhance this later with a proper notification system
+    alert(message);
+}
+
+// Check if user is logged in
+function checkAuth() {
+    if (token) {
+        // User has a token, validate it by fetching profile
+        fetchProfile();
+    } else {
+        // No token, show auth container
+        document.getElementById('auth-container').style.display = 'block';
+        document.getElementById('profile-container').style.display = 'none';
+    }
+}
+
+// Fetch user profile
+async function fetchProfile() {
+    try {
+        const response = await fetch('/me', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            // Token is valid, user is logged in
+            const userData = await response.json();
+            currentUser = userData;
+            
+            // Update UI
+            document.getElementById('auth-container').style.display = 'none';
+            document.getElementById('profile-container').style.display = 'block';
+            
+            // Populate user info
+            document.getElementById('user-info').innerHTML = `
+                <p><strong>Username:</strong> ${userData.username}</p>
+                <p><strong>Email:</strong> ${userData.email}</p>
+                <p><strong>Joined:</strong> ${new Date(userData.created_at).toLocaleDateString()}</p>
+            `;
+            
+            // Fetch friends list
+            fetchFriends();
+        } else {
+            // Invalid token
+            localStorage.removeItem('hugz_token');
+            token = null;
+            document.getElementById('auth-container').style.display = 'block';
+            document.getElementById('profile-container').style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error fetching profile:', error);
+        showNotification('Error fetching profile data', true);
+    }
+}
+
+// Fetch friends list
+async function fetchFriends() {
+    try {
+        const response = await fetch('/friends', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const friends = await response.json();
+            const friendsList = document.getElementById('friends-list');
+            
+            if (friends.length === 0) {
+                friendsList.innerHTML = '<p>You don\'t have any friends yet.</p>';
+                return;
+            }
+            
+            // Build friends list HTML
+            let html = '';
+            friends.forEach(friend => {
+                html += `
+                    <div class="friend-item">
+                        <span>${friend.username}</span>
+                        <div>
+                            ${friend.accepted ? 
+                                `<button onclick="initHugSession(${friend.id})">Hug</button>` : 
+                                (friend.can_accept ? 
+                                  `<button onclick="acceptFriendRequest(${friend.id})">Accept</button>` : 
+                                  '<span>Pending</span>'
+                                )
+                            }
+                            <button onclick="removeFriend(${friend.id})">Remove</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            friendsList.innerHTML = html;
+        } else {
+            showNotification('Failed to load friends list', true);
+        }
+    } catch (error) {
+        console.error('Error fetching friends:', error);
+        showNotification('Error loading friends', true);
+    }
+}
+
+// Send friend request
+async function sendFriendRequest(username) {
+    try {
+        const response = await fetch('/friends/request', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username })
+        });
+        
+        if (response.ok) {
+            showNotification('Friend request sent successfully!');
+            document.getElementById('friend-username').value = '';
+            fetchFriends(); // Refresh list
+        } else {
+            const error = await response.json();
+            showNotification(error.detail || 'Failed to send friend request', true);
+        }
+    } catch (error) {
+        console.error('Error sending friend request:', error);
+        showNotification('Error sending friend request', true);
+    }
+}
+
+// Accept friend request
+async function acceptFriendRequest(friendId) {
+    try {
+        const response = await fetch(`/friends/accept/${friendId}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            showNotification('Friend request accepted!');
+            fetchFriends(); // Refresh list
+        } else {
+            showNotification('Failed to accept friend request', true);
+        }
+    } catch (error) {
+        console.error('Error accepting friend request:', error);
+        showNotification('Error accepting friend request', true);
+    }
+}
+
+// Remove friend
+async function removeFriend(friendId) {
+    if (!confirm('Are you sure you want to remove this friend?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/friends/${friendId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            showNotification('Friend removed successfully');
+            fetchFriends(); // Refresh list
+        } else {
+            showNotification('Failed to remove friend', true);
+        }
+    } catch (error) {
+        console.error('Error removing friend:', error);
+        showNotification('Error removing friend', true);
+    }
+}
+
+// Initiate hug session
+async function initHugSession(friendId) {
+    try {
+        const response = await fetch('/hug-session/create', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ friend_id: friendId })
+        });
+        
+        if (response.ok) {
+            const session = await response.json();
+            // Redirect to the main page with the session key
+            window.location.href = `/?session=${session.session_key}`;
+        } else {
+            showNotification('Failed to create hug session', true);
+        }
+    } catch (error) {
+        console.error('Error creating hug session:', error);
+        showNotification('Error creating hug session', true);
+    }
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', () => {
+    // Check authentication status
+    checkAuth();
+    
+    // Add tab switching functionality
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const containerSelector = tab.closest('.container').id === 'auth-container' ? '#auth-container' : '#profile-container';
+            switchTab(tab.getAttribute('data-tab'), containerSelector);
+        });
+    });
+    
+    // Login form submission
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const username = document.getElementById('login-username').value;
+        const password = document.getElementById('login-password').value;
+        
+        try {
+            // FormData for OAuth2 password flow
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('password', password);
+            
+            const response = await fetch('/token', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                token = data.access_token;
+                localStorage.setItem('hugz_token', token);
+                fetchProfile();
+            } else {
+                showNotification('Login failed: Invalid username or password', true);
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            showNotification('Login failed', true);
+        }
+    });
+    
+    // Register form submission
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('register-username').value;
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+    const confirmPassword = document.getElementById('register-confirm').value;
+    
+    if (password !== confirmPassword) {
+        showNotification('Passwords do not match', true);
+        return;
+    }
+    
+    try {
+        const response = await fetch('/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, email, password })
+        });
+        
+        if (response.ok) {
+            showNotification('Registration successful! Please log in.');
+            switchTab('login', '#auth-container');
+            
+            // Pre-fill the login form with the registered username
+            document.getElementById('login-username').value = username;
+        } else {
+
+          const responseText = await response.text();
+          console.log('Server response:', responseText);
+
+
+            try {
+                const error = responseText ? JSON.parse(responseText) : {detail: "Empty response"};
+                showNotification(`Registration failed: ${error.detail || 'Unknown error'}`, true);
+            } catch (jsonError) {
+                console.error('Error parsing error response:', jsonError);
+                showNotification(`Registration failed: ${response.status} ${response.statusText}`, true);
+            }
+        }
+    } catch (error) {
+        console.error('Registration error:', error);
+        showNotification('Registration failed', true);
+    }
+});
+    
+    // Add friend form submission
+    document.getElementById('add-friend-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = document.getElementById('friend-username').value;
+        sendFriendRequest(username);
+    });
+    
+    // Logout button
+    document.getElementById('logout-btn').addEventListener('click', () => {
+        localStorage.removeItem('hugz_token');
+        token = null;
+        currentUser = null;
+        checkAuth();
+    });
+});
+    </script>
+</body>
+</html>
