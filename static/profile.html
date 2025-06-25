@@ -6,57 +6,340 @@
     <title>Hugz Profile</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-    <!-- Add your CSS styles here -->
     <style>
-        /* Similar style to your index.html but with profile-specific elements */
+        @keyframes floatIn {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(209, 165, 132, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(209, 165, 132, 0.8), 0 0 30px rgba(230, 190, 160, 0.4); }
+        }
+        
+        @keyframes buttonPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Press Start 2P', cursive;
             background-image: url("/static/images/background.png");
             background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-attachment: fixed;
+            background-color: #ede9da;
             display: flex;
             flex-direction: column;
             align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        h1 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 32px;
+            color: #B8956B;
+            text-align: center;
+            text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
+            margin: 20px 0 40px 0;
+            animation: floatIn 1s ease-out;
         }
         
         .container {
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 30px;
-            width: 80%;
-            max-width: 800px;
+            background: linear-gradient(135deg, rgba(252, 248, 240, 0.95), rgba(242, 225, 200, 0.9));
+            padding: 30px;
+            border-radius: 20px;
+            margin: 20px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), 0 0 20px rgba(209, 165, 132, 0.3);
+            border: 3px solid #D1A584;
+            animation: floatIn 1.2s ease-out;
+            backdrop-filter: blur(10px);
         }
         
         .tab-panel {
             display: flex;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            gap: 5px;
         }
         
         .tab {
-            padding: 10px 20px;
+            padding: 15px 25px;
             cursor: pointer;
-            background-color: #f1f1f1;
-            margin-right: 5px;
+            background: linear-gradient(145deg, #FCF8F0, #F2E1C8);
+            border: 2px solid #D1A584;
+            border-radius: 10px 10px 0 0;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            color: #B8956B;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tab::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+        
+        .tab:hover::before {
+            left: 100%;
+        }
+        
+        .tab:hover {
+            background: linear-gradient(145deg, #E6BEA0, #F0CDB0);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(209, 165, 132, 0.4);
         }
         
         .tab.active {
-            background-color: white;
-            border-bottom: 3px solid #7D6E83;
+            background: linear-gradient(145deg, #E6BEA0, #D1A584);
+            border-bottom: none;
+            color: #A0835D;
+            animation: glow 2s infinite;
         }
         
         .tab-content {
             display: none;
+            animation: floatIn 0.8s ease-out;
         }
         
         .tab-content.active {
             display: block;
         }
         
-        /* More styling for forms, buttons, etc. */
+        /* Cool form styling */
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .form-group {
+            position: relative;
+        }
+        
+        label {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            color: #B8956B;
+            margin-bottom: 12px;
+            display: block;
+            text-transform: uppercase;
+        }
+        
+        input[type="text"], 
+        input[type="email"], 
+        input[type="password"] {
+            width: 100%;
+            padding: 18px 25px;
+            border: 3px solid #D1A584;
+            border-radius: 15px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 16px;
+            background: linear-gradient(145deg, rgba(252, 248, 240, 0.9), rgba(242, 225, 200, 0.3));
+            color: #333;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            position: relative;
+        }
+        
+        input[type="text"]:focus, 
+        input[type="email"]:focus, 
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #E6BEA0;
+            background: linear-gradient(145deg, rgba(252, 248, 240, 1), rgba(242, 225, 200, 0.5));
+            box-shadow: 0 0 20px rgba(230, 190, 160, 0.6), inset 0 0 10px rgba(209, 165, 132, 0.1);
+            transform: scale(1.02);
+        }
+        
+        input[type="text"]::placeholder,
+        input[type="email"]::placeholder,
+        input[type="password"]::placeholder {
+            color: #999;
+            font-size: 14px;
+        }
+        
+        /* Epic button styling */
+        button {
+            background: linear-gradient(145deg, #E6BEA0, #D1A584);
+            border: 3px solid #B8956B;
+            border-radius: 15px;
+            padding: 18px 30px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 16px;
+            color: #A0835D;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            margin-top: 15px;
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+        
+        button:hover {
+            background: linear-gradient(145deg, #D1A584, #E6BEA0);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(209, 165, 132, 0.4);
+            animation: buttonPulse 1s infinite;
+        }
+        
+        button:hover::before {
+            left: 100%;
+        }
+        
+        button:active {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(209, 165, 132, 0.3);
+        }
+        
+        /* Friend list styling */
+        .friend-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: linear-gradient(145deg, rgba(252, 248, 240, 0.8), rgba(242, 225, 200, 0.4));
+            border: 2px solid #D1A584;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .friend-item:hover {
+            background: linear-gradient(145deg, rgba(242, 225, 200, 0.6), rgba(252, 248, 240, 0.9));
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(209, 165, 132, 0.3);
+        }
+        
+        .friend-item span {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 16px;
+            color: #B8956B;
+        }
+        
+        .friend-item button {
+            padding: 12px 18px;
+            font-size: 14px;
+            margin: 0 0 0 15px;
+        }
+        
+        .friend-item button {
+            padding: 8px 15px;
+            font-size: 10px;
+            margin: 0 0 0 10px;
+        }
+        
+        /* User info styling */
+        #user-info {
+            background: linear-gradient(145deg, rgba(242, 225, 200, 0.3), rgba(252, 248, 240, 0.6));
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #D1A584;
+            margin-bottom: 20px;
+        }
+        
+        #user-info p {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 15px;
+            color: #B8956B;
+            margin: 15px 0;
+            line-height: 1.8;
+        }
+        
+        /* Link styling */
+        a {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            color: #B8956B;
+            text-decoration: none;
+            padding: 15px 20px;
+            background: linear-gradient(145deg, rgba(252, 248, 240, 0.8), rgba(242, 225, 200, 0.4));
+            border: 2px solid #D1A584;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        
+        a:hover {
+            background: linear-gradient(145deg, #E6BEA0, #F0CDB0);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(209, 165, 132, 0.3);
+        }
+        
+        /* Loading states */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        
+        .loading::after {
+            content: '...';
+            animation: loading 1s infinite;
+        }
+        
+        @keyframes loading {
+            0%, 33% { content: '.'; }
+            34%, 66% { content: '..'; }
+            67%, 100% { content: '...'; }
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+            
+            .tab {
+                font-size: 12px;
+                padding: 12px 18px;
+            }
+            
+            input[type="text"], 
+            input[type="email"], 
+            input[type="password"] {
+                font-size: 14px;
+                padding: 15px 20px;
+            }
+            
+            button {
+                font-size: 14px;
+                padding: 15px 25px;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>Hugz Profile</h1>
+    <h1>🫂 hugz profile 🫂</h1>
     
     <!-- Login/Register Container (shown when not logged in) -->
     <div id="auth-container" class="container">
@@ -66,38 +349,38 @@
         </div>
         
         <div id="login" class="tab-content active">
-            <h2>Login</h2>
+            <h2 style="font-size: 20px; color: #B8956B; margin-bottom: 25px;">Welcome Back!</h2>
             <form id="login-form">
-                <div>
+                <div class="form-group">
                     <label for="login-username">Username:</label>
-                    <input type="text" id="login-username" required>
+                    <input type="text" id="login-username" placeholder="Enter your username" required>
                 </div>
-                <div>
+                <div class="form-group">
                     <label for="login-password">Password:</label>
-                    <input type="password" id="login-password" required>
+                    <input type="password" id="login-password" placeholder="Enter your password" required>
                 </div>
                 <button type="submit">Login</button>
             </form>
         </div>
         
         <div id="register" class="tab-content">
-            <h2>Register</h2>
+            <h2 style="font-size: 20px; color: #B8956B; margin-bottom: 25px;">Join the Hugz!</h2>
             <form id="register-form">
-                <div>
+                <div class="form-group">
                     <label for="register-username">Username:</label>
-                    <input type="text" id="register-username" required>
+                    <input type="text" id="register-username" placeholder="Choose a username" required>
                 </div>
-                <div>
+                <div class="form-group">
                     <label for="register-email">Email:</label>
-                    <input type="email" id="register-email" required>
+                    <input type="email" id="register-email" placeholder="Enter your email" required>
                 </div>
-                <div>
+                <div class="form-group">
                     <label for="register-password">Password:</label>
-                    <input type="password" id="register-password" required>
+                    <input type="password" id="register-password" placeholder="Create a password" required>
                 </div>
-                <div>
+                <div class="form-group">
                     <label for="register-confirm">Confirm Password:</label>
-                    <input type="password" id="register-confirm" required>
+                    <input type="password" id="register-confirm" placeholder="Confirm your password" required>
                 </div>
                 <button type="submit">Register</button>
             </form>
@@ -113,27 +396,27 @@
         </div>
         
         <div id="profile" class="tab-content active">
-            <h2>My Profile</h2>
+            <h2 style="font-size: 20px; color: #B8956B; margin-bottom: 25px;">Your Profile</h2>
             <div id="user-info">
                 <!-- User info will be loaded here -->
             </div>
             <button id="logout-btn">Logout</button>
-            <a href="/">Back to Main Page</a>
+            <a href="/">🏠 Back to Main Page</a>
         </div>
         
         <div id="friends" class="tab-content">
-            <h2>My Friends</h2>
+            <h2 style="font-size: 20px; color: #B8956B; margin-bottom: 25px;">Your Friends</h2>
             <div id="friends-list">
                 <!-- Friends will be loaded here -->
             </div>
         </div>
         
         <div id="add-friend" class="tab-content">
-            <h2>Add Friend</h2>
+            <h2 style="font-size: 20px; color: #B8956B; margin-bottom: 25px;">Add New Friend</h2>
             <form id="add-friend-form">
-                <div>
+                <div class="form-group">
                     <label for="friend-username">Friend's Username:</label>
-                    <input type="text" id="friend-username" required>
+                    <input type="text" id="friend-username" placeholder="Enter their username" required>
                 </div>
                 <button type="submit">Send Friend Request</button>
             </form>
@@ -164,8 +447,42 @@ function switchTab(tabName, containerSelector = '') {
 
 // Function to show notifications
 function showNotification(message, isError = false) {
-    // You can enhance this later with a proper notification system
-    alert(message);
+    // Enhanced notification with styling
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${isError ? 'linear-gradient(145deg, #ff6b6b, #ff5252)' : 'linear-gradient(145deg, #FFD1DC, #ff9faa)'};
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        font-family: 'Press Start 2P', cursive;
+        font-size: 10px;
+        border: 2px solid ${isError ? '#d32f2f' : '#7D6E83'};
+        z-index: 1000;
+        animation: floatIn 0.5s ease-out;
+        max-width: 300px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'floatIn 0.5s ease-out reverse';
+        setTimeout(() => notification.remove(), 500);
+    }, 3000);
+}
+
+// Add loading state to buttons
+function setButtonLoading(button, isLoading) {
+    if (isLoading) {
+        button.classList.add('loading');
+        button.disabled = true;
+    } else {
+        button.classList.remove('loading');
+        button.disabled = false;
+    }
 }
 
 // Check if user is logged in
@@ -200,9 +517,9 @@ async function fetchProfile() {
             
             // Populate user info
             document.getElementById('user-info').innerHTML = `
-                <p><strong>Username:</strong> ${userData.username}</p>
-                <p><strong>Email:</strong> ${userData.email}</p>
-                <p><strong>Joined:</strong> ${new Date(userData.created_at).toLocaleDateString()}</p>
+                <p><strong>👤 Username:</strong> ${userData.username}</p>
+                <p><strong>📧 Email:</strong> ${userData.email}</p>
+                <p><strong>📅 Joined:</strong> ${new Date(userData.created_at).toLocaleDateString()}</p>
             `;
             
             // Fetch friends list
@@ -234,7 +551,7 @@ async function fetchFriends() {
             const friendsList = document.getElementById('friends-list');
             
             if (friends.length === 0) {
-                friendsList.innerHTML = '<p>You don\'t have any friends yet.</p>';
+                friendsList.innerHTML = '<p style="text-align: center; color: #B8956B; font-size: 15px;">No friends yet! Add some friends to start hugging! 🫂</p>';
                 return;
             }
             
@@ -243,16 +560,16 @@ async function fetchFriends() {
             friends.forEach(friend => {
                 html += `
                     <div class="friend-item">
-                        <span>${friend.username}</span>
+                        <span>👤 ${friend.username}</span>
                         <div>
                             ${friend.accepted ? 
-                                `<button onclick="initHugSession(${friend.id})">Hug</button>` : 
+                                `<button onclick="initHugSession(${friend.id})" style="background: linear-gradient(145deg, #90EE90, #98FB98);">🫂 Hug</button>` : 
                                 (friend.can_accept ? 
-                                  `<button onclick="acceptFriendRequest(${friend.id})">Accept</button>` : 
-                                  '<span>Pending</span>'
+                                  `<button onclick="acceptFriendRequest(${friend.id})" style="background: linear-gradient(145deg, #87CEEB, #ADD8E6);">✅ Accept</button>` : 
+                                  '<span style="color: #999; font-size: 9px;">⏳ Pending</span>'
                                 )
                             }
-                            <button onclick="removeFriend(${friend.id})">Remove</button>
+                            <button onclick="removeFriend(${friend.id})" style="background: linear-gradient(145deg, #ffb3b3, #ff9999);">❌</button>
                         </div>
                     </div>
                 `;
@@ -281,7 +598,7 @@ async function sendFriendRequest(username) {
         });
         
         if (response.ok) {
-            showNotification('Friend request sent successfully!');
+            showNotification('Friend request sent successfully! 🎉');
             document.getElementById('friend-username').value = '';
             fetchFriends(); // Refresh list
         } else {
@@ -305,7 +622,7 @@ async function acceptFriendRequest(friendId) {
         });
         
         if (response.ok) {
-            showNotification('Friend request accepted!');
+            showNotification('Friend request accepted! 🎉');
             fetchFriends(); // Refresh list
         } else {
             showNotification('Failed to accept friend request', true);
@@ -318,7 +635,7 @@ async function acceptFriendRequest(friendId) {
 
 // Remove friend
 async function removeFriend(friendId) {
-    if (!confirm('Are you sure you want to remove this friend?')) {
+    if (!confirm('Are you sure you want to remove this friend? 💔')) {
         return;
     }
     
@@ -357,7 +674,10 @@ async function initHugSession(friendId) {
         if (response.ok) {
             const session = await response.json();
             // Redirect to the main page with the session key
-            window.location.href = `/?session=${session.session_key}`;
+            showNotification('Starting hug session! 🫂');
+            setTimeout(() => {
+                window.location.href = `/?session=${session.session_key}`;
+            }, 1000);
         } else {
             showNotification('Failed to create hug session', true);
         }
@@ -384,6 +704,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        setButtonLoading(submitBtn, true);
+        
         const username = document.getElementById('login-username').value;
         const password = document.getElementById('login-password').value;
         
@@ -402,6 +725,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
                 token = data.access_token;
                 localStorage.setItem('hugz_token', token);
+                showNotification('Welcome back! 🎉');
                 fetchProfile();
             } else {
                 showNotification('Login failed: Invalid username or password', true);
@@ -409,62 +733,76 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Login error:', error);
             showNotification('Login failed', true);
+        } finally {
+            setButtonLoading(submitBtn, false);
         }
     });
     
     // Register form submission
     document.getElementById('register-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const username = document.getElementById('register-username').value;
-    const email = document.getElementById('register-email').value;
-    const password = document.getElementById('register-password').value;
-    const confirmPassword = document.getElementById('register-confirm').value;
-    
-    if (password !== confirmPassword) {
-        showNotification('Passwords do not match', true);
-        return;
-    }
-    
-    try {
-        const response = await fetch('/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, email, password })
-        });
+        e.preventDefault();
         
-        if (response.ok) {
-            showNotification('Registration successful! Please log in.');
-            switchTab('login', '#auth-container');
-            
-            // Pre-fill the login form with the registered username
-            document.getElementById('login-username').value = username;
-        } else {
-
-          const responseText = await response.text();
-          console.log('Server response:', responseText);
-
-
-            try {
-                const error = responseText ? JSON.parse(responseText) : {detail: "Empty response"};
-                showNotification(`Registration failed: ${error.detail || 'Unknown error'}`, true);
-            } catch (jsonError) {
-                console.error('Error parsing error response:', jsonError);
-                showNotification(`Registration failed: ${response.status} ${response.statusText}`, true);
-            }
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        setButtonLoading(submitBtn, true);
+        
+        const username = document.getElementById('register-username').value;
+        const email = document.getElementById('register-email').value;
+        const password = document.getElementById('register-password').value;
+        const confirmPassword = document.getElementById('register-confirm').value;
+        
+        if (password !== confirmPassword) {
+            showNotification('Passwords do not match', true);
+            setButtonLoading(submitBtn, false);
+            return;
         }
-    } catch (error) {
-        console.error('Registration error:', error);
-        showNotification('Registration failed', true);
-    }
-});
+        
+        try {
+            const response = await fetch('/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, email, password })
+            });
+            
+            if (response.ok) {
+                showNotification('Registration successful! Please log in. 🎉');
+                switchTab('login', '#auth-container');
+                
+                // Pre-fill the login form with the registered username
+                document.getElementById('login-username').value = username;
+                // Clear registration form
+                document.getElementById('register-form').reset();
+            } else {
+                const responseText = await response.text();
+                console.log('Server response:', responseText);
+
+                try {
+                    const error = responseText ? JSON.parse(responseText) : {detail: "Empty response"};
+                    showNotification(`Registration failed: ${error.detail || 'Unknown error'}`, true);
+                } catch (jsonError) {
+                    console.error('Error parsing error response:', jsonError);
+                    showNotification(`Registration failed: ${response.status} ${response.statusText}`, true);
+                }
+            }
+        } catch (error) {
+            console.error('Registration error:', error);
+            showNotification('Registration failed', true);
+        } finally {
+            setButtonLoading(submitBtn, false);
+        }
+    });
     
     // Add friend form submission
     document.getElementById('add-friend-form').addEventListener('submit', (e) => {
         e.preventDefault();
         const username = document.getElementById('friend-username').value;
-        sendFriendRequest(username);
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        setButtonLoading(submitBtn, true);
+        
+        sendFriendRequest(username).finally(() => {
+            setButtonLoading(submitBtn, false);
+        });
     });
     
     // Logout button
@@ -472,6 +810,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.removeItem('hugz_token');
         token = null;
         currentUser = null;
+        showNotification('Logged out successfully! 👋');
         checkAuth();
     });
 });
