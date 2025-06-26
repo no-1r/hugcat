@@ -36,7 +36,6 @@ limiter = Limiter(key_func=get_remote_address)
 class UserResponse(BaseModel):
     id: int
     username: str
-    email: str
     created_at: datetime
     
     class Config:
@@ -44,7 +43,6 @@ class UserResponse(BaseModel):
 
 class UserCreate(BaseModel):
     username: str
-    email: str
     password: str
     
     @validator('username')
@@ -56,14 +54,6 @@ class UserCreate(BaseModel):
         if not re.match(r'^[a-zA-Z0-9_-]+$', v):
             raise ValueError('Username can only contain letters, numbers, hyphens and underscores')
         return v.strip()
-    
-    @validator('email')
-    def validate_email(cls, v):
-        if not v or '@' not in v:
-            raise ValueError('Invalid email address')
-        if len(v) > 254:
-            raise ValueError('Email address too long')
-        return v.strip().lower()
     
     @validator('password')
     def validate_password(cls, v):
@@ -133,7 +123,6 @@ class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key = True, index = True)
     username = Column(String, unique=True, index = True, nullable = False)
-    email = Column(String, unique=True, index = True, nullable = False)
     hashed_password = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
 
