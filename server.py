@@ -537,30 +537,24 @@ async def check_public_status(request: Request):
 
 @app.post("/register")
 @limiter.limit("5/minute")
-async def register(request: Request, user: UserCreate):
+async def register(user: UserCreate):
     db = SessionLocal() 
 
-    try:
-        existing_user = db.query(User).filter(User.username == user.username).first()
+    existing_user = db.query(User).filter(User.username == user.username).first()
 
-        if existing_user: 
-            raise HTTPException(status_code=400, detail="username already exists")
-
-        existing_email = db.query(User).filter(User.email == user.email).first()
-        
-        if existing_email:
-            raise HTTPException(status_code=400, detail="Email already exists")
-
-        hashed_password = get_password_hash(user.password)
-        new_user = User(username=user.username, email=user.email, hashed_password=hashed_password)
-        
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
-
-        return {"user_id": new_user.id, "username": new_user.username}
-    finally:
+    if existing_user: 
         db.close()
+        raise HTTPException(status_code=400, detail="username already exists")
+
+    hashed_password = get_password_hash(user.password)
+    new_user = User(username=user.username, hashed_password=hashed_password)
+    
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    db.close()
+
+    return {"user_id": new_user.id, "username": new_user.username}
 
 @app.get("/friends", response_model=List[FriendResponse])
 @limiter.limit("30/minute")
