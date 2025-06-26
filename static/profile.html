@@ -339,7 +339,7 @@
     </style>
 </head>
 <body>
-    <h1>🫂 hugz profile 🫂</h1>
+    <h1> profile </h1>
     
     <!-- Login/Register Container (shown when not logged in) -->
     <div id="auth-container" class="container">
@@ -369,10 +369,6 @@
                 <div class="form-group">
                     <label for="register-username">Username:</label>
                     <input type="text" id="register-username" placeholder="Choose a username" required>
-                </div>
-                <div class="form-group">
-                    <label for="register-email">Email:</label>
-                    <input type="email" id="register-email" placeholder="Enter your email" required>
                 </div>
                 <div class="form-group">
                     <label for="register-password">Password:</label>
@@ -518,7 +514,6 @@ async function fetchProfile() {
             // Populate user info
             document.getElementById('user-info').innerHTML = `
                 <p><strong>👤 Username:</strong> ${userData.username}</p>
-                <p><strong>📧 Email:</strong> ${userData.email}</p>
                 <p><strong>📅 Joined:</strong> ${new Date(userData.created_at).toLocaleDateString()}</p>
             `;
             
@@ -725,7 +720,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
                 token = data.access_token;
                 localStorage.setItem('hugz_token', token);
-                showNotification('Welcome back! 🎉');
+                showNotification('Welcome back!');
                 fetchProfile();
             } else {
                 showNotification('Login failed: Invalid username or password', true);
@@ -746,7 +741,6 @@ document.addEventListener('DOMContentLoaded', () => {
         setButtonLoading(submitBtn, true);
         
         const username = document.getElementById('register-username').value;
-        const email = document.getElementById('register-email').value;
         const password = document.getElementById('register-password').value;
         const confirmPassword = document.getElementById('register-confirm').value;
         
@@ -762,7 +756,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ username, email, password })
+                body: JSON.stringify({ username, password })
             });
             
             if (response.ok) {
