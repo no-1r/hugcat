@@ -39,7 +39,7 @@ class UserResponse(BaseModel):
     created_at: datetime
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class UserCreate(BaseModel):
     username: str
@@ -537,7 +537,7 @@ async def check_public_status(request: Request):
 
 @app.post("/register")
 @limiter.limit("5/minute")
-async def register(user: UserCreate):
+async def register(request: Request, user: UserCreate):
     db = SessionLocal() 
 
     existing_user = db.query(User).filter(User.username == user.username).first()
